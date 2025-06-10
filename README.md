@@ -1,6 +1,9 @@
 # Cosmos-Drive-Dreams
-### [Paper]() | [Hugging Face](https://huggingface.co/datasets/nvidia/PhysicalAI-Autonomous-Vehicle-Cosmos-Synthetic) | [Paper Website](https://research.nvidia.com/labs/toronto-ai/cosmos_drive_dreams)
+### [Paper]() | [Hugging Face (Data)](https://huggingface.co/datasets/nvidia/PhysicalAI-Autonomous-Vehicle-Cosmos-Synthetic) | [Hugging Face (Model)](https://huggingface.co/nvidia/Cosmos-Transfer1-7B-Sample-AV) | [Paper Website](https://research.nvidia.com/labs/toronto-ai/cosmos_drive_dreams)
 This is the official code repository of Cosmos-Drive-Dreams - a Synthetic Data Generation (**SDG**) pipeline built on [Cosmos World Foundation Models](https://www.nvidia.com/en-us/ai/cosmos/) for generating diverse and challenging scenarios for Autonomous Vehicle use-cases. 
+
+We open-source our **model weights**, **pipeline toolkit**, and a **synthetic dataset** (including cosmos-generated videos, paired HDMap and LiDAR), which consists of **81,802** clips.
+
 <p align="center">
     <img src="assets/teaser.png" alt="Cosmos-Drive-Dream Teaser">
 </p>
@@ -12,11 +15,24 @@ Currently, this repository implements the following stages of the Cosmos-Drive-D
 3. Multi-view expansion
 4. Filtering via VLM
 
-Furthermore, this repository provides a full toolkit for visualizing structured labels [here](), editing structured labels interactively to produce novel scenarios [here](), and converting Waymo Open Dataset to our format [here]().
+Furthermore, this repository provides a full toolkit for visualizing structured labels [here](https://github.com/nv-tlabs/Cosmos-Drive-Dreams/tree/main/cosmos-drive-dreams-toolkits#visualize-dataset), editing structured labels interactively to produce novel scenarios [here](), and converting Waymo Open Dataset to our format [here]().
 
-Other stages, such as inferring condition video from unlabled RGB video and LiDAR Generation from multi-view video will soon arrive to this repo. 
+Other stages, such as inferring condition video from unlabeled RGB video and LiDAR Generation from multi-view video, will soon arrive in this repo. 
 
-## Getting Started
+## News
+
+- 2025-06-10: Model, Toolkits, and Dataset (including cosmos-generated video, HDMap, and LiDAR) are released! Stay tuned for the paired GT RGB videos. 
+
+
+## Contents
+
+1. [Introduction to Cosmos-Drive-Dreams Synthetic Dataset](#cosmos-drive-dreams-synthetic-dataset)
+2. [Getting Started with Cosmos-Drive-Dreams SDG Pipeline](#cosmos-drive-dreams-sdg-pipeline)
+
+## Cosmos-Drive-Dreams Synthetic Dataset
+
+  
+## Cosmos-Drive-Dreams SDG Pipeline
 We provide a simple walkthrough including all stages of our SDG pipeline through example data available in the assets folder, no additional data download is neccessary. 
 
 ### Installation and Model Downloading
