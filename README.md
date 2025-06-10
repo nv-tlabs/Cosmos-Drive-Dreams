@@ -36,12 +36,12 @@ Detailed information can be found on the [Huggingface page](https://huggingface.
 
 ### Download
 ```bash
-
+Coming soon
 ```
 
 ### Tutorial / Toolkits
 
-- Visualizing the dataset [here](https://github.com/nv-tlabs/Cosmos-Drive-Dreams/tree/main/cosmos-drive-dreams-toolkits#visualize-dataset)
+- Visualizing the structured labels [here](https://github.com/nv-tlabs/Cosmos-Drive-Dreams/tree/main/cosmos-drive-dreams-toolkits#visualize-dataset)
 
 - Editing structured labels interactively to produce novel scenarios [here](https://github.com/nv-tlabs/Cosmos-Drive-Dreams/tree/main/cosmos-drive-dreams-toolkits#generate-novel-ego-trajectory)
 
