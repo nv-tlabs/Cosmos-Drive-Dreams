@@ -1,6 +1,6 @@
 # Cosmos-Drive-Dreams
-### [Paper]() | [Paper Website](https://research.nvidia.com/labs/toronto-ai/cosmos_drive_dreams)
-### [Models](#cosmos-drive-open-source-summary) | [Dataset](#cosmos-drive-dreams-dataset) | [Toolkits](#cosmos-drive-dreams-toolkits) | [SDG Pipeline](#cosmos-drive-dreams-sdg-pipeline)
+### External Links: [Paper]() | [Paper Website](https://research.nvidia.com/labs/toronto-ai/cosmos_drive_dreams)
+### On This Page: [Models](#cosmos-drive-open-source-summary) | [Dataset](#cosmos-drive-dreams-dataset) | [Toolkits](#cosmos-drive-dreams-toolkits) | [SDG Pipeline](#cosmos-drive-dreams-sdg-pipeline)
 
 This is the official code repository of Cosmos-Drive-Dreams - a Synthetic Data Generation (**SDG**) pipeline built on [Cosmos World Foundation Models](https://www.nvidia.com/en-us/ai/cosmos/) for generating diverse and challenging scenarios for Autonomous Vehicle use-cases. 
 
@@ -112,7 +112,7 @@ Coming soon
 
 ## Citation
 ```bibtex
-@misc{nvidia2025cosmostransfer1,
+@misc{nvidia2025cosmosdrivedreams,
   title     = {Cosmos-Drive-Dreams: Scalable Synthetic Driving Data Generation with World Foundation Models},
   author = {Ren, Xuanchi and Lu, Yifan and Cao, Tianshi and Gao, Ruiyuan and
           Huang, Shengyu and Sabour, Amirmojtaba and Shen, Tianchang and
