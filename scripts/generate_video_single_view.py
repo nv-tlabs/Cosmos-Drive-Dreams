@@ -29,17 +29,13 @@ import torch
 from cosmos_transfer1.checkpoints import BASE_7B_CHECKPOINT_AV_SAMPLE_PATH, BASE_7B_CHECKPOINT_PATH
 from cosmos_transfer1.utils import log, misc
 from cosmos_transfer1.utils.io import read_prompts_from_file, save_video
+from cosmos_transfer1.diffusion.inference.inference_utils import validate_controlnet_specs
+from cosmos_transfer1.diffusion.inference.preprocessors import Preprocessors
+from cosmos_transfer1.diffusion.inference.world_generation_pipeline import DiffusionControl2WorldGenerationPipeline
 
-USE_RAY = False
-
-if USE_RAY:
-    import ray
-    decorator = ray.remote(num_gpus=1)
-else:
-    def decorator(func):
-        return func
 
 valid_hint_keys = {"hdmap", "lidar"}
+
 def load_controlnet_specs(cfg):
     with open(cfg.controlnet_specs, "r") as f:
         controlnet_specs_in = json.load(f)
@@ -177,8 +173,9 @@ def parse_arguments() -> argparse.Namespace:
 
     return cmd_args, control_inputs
 
-@decorator
-def demo(cfg, 
+
+def demo(cfg,
+         pipeline,
          control_inputs,
          video_save_name,
          prompt,
@@ -206,56 +203,9 @@ def demo(cfg,
     If guardrails block the generation, a critical log message is displayed
     and the function continues to the next prompt if available.
     """
-    from cosmos_transfer1.diffusion.inference.inference_utils import validate_controlnet_specs
-    from cosmos_transfer1.diffusion.inference.preprocessors import Preprocessors
-    from cosmos_transfer1.diffusion.inference.world_generation_pipeline import DiffusionControl2WorldGenerationPipeline
-    current_dir = os.getcwd()
-    os.chdir("cosmos-transfer1")
-    torch.enable_grad(False)
-    torch.serialization.add_safe_globals([BytesIO])
-
     control_inputs = validate_controlnet_specs(cfg, control_inputs)
-    misc.set_random_seed(cfg.seed)
-
-    device_rank = 0
-    process_group = None
-    if cfg.num_gpus > 1:
-        from megatron.core import parallel_state
-
-        from cosmos_transfer1.utils import distributed
-
-        distributed.init()
-        parallel_state.initialize_model_parallel(context_parallel_size=cfg.num_gpus)
-        process_group = parallel_state.get_context_parallel_group()
-
-        device_rank = distributed.get_rank(process_group)
 
     preprocessors = Preprocessors()
-
-    checkpoint = BASE_7B_CHECKPOINT_AV_SAMPLE_PATH if cfg.is_av_sample else BASE_7B_CHECKPOINT_PATH
-
-    # Initialize transfer generation model pipeline
-    pipeline = DiffusionControl2WorldGenerationPipeline(
-        checkpoint_dir=cfg.checkpoint_dir,
-        checkpoint_name=checkpoint,
-        offload_network=cfg.offload_diffusion_transformer,
-        offload_text_encoder_model=cfg.offload_text_encoder_model,
-        offload_guardrail_models=cfg.offload_guardrail_models,
-        guidance=cfg.guidance,
-        num_steps=cfg.num_steps,
-        fps=cfg.fps,
-        seed=cfg.seed,
-        num_input_frames=cfg.num_input_frames,
-        control_inputs=control_inputs,
-        sigma_max=cfg.sigma_max,
-        blur_strength=cfg.blur_strength,
-        canny_threshold=cfg.canny_threshold,
-        upsample_prompt=cfg.upsample_prompt,
-        offload_prompt_upsampler=cfg.offload_prompt_upsampler,
-        process_group=process_group,
-        regional_prompts=[]
-    )
-
     if cfg.batch_input_path:
         log.info(f"Reading batch inputs from path: {cfg.batch_input_path}")
         prompts = read_prompts_from_file(cfg.batch_input_path)
@@ -311,14 +261,7 @@ def demo(cfg,
             log.info(f"Saved video to {video_save_path}")
             log.info(f"Saved prompt to {prompt_save_path}")
 
-    # clean up properly
-    if cfg.num_gpus > 1:
-        parallel_state.destroy_model_parallel()
-        import torch.distributed as dist
 
-        dist.destroy_process_group()
-
-    os.chdir(current_dir)
 
 if __name__ == "__main__":
     args, control_inputs = parse_arguments()
@@ -374,48 +317,69 @@ if __name__ == "__main__":
         print("No prompts found")
         exit(0)
 
-    if USE_RAY:
-        # Initialize Ray
-        ray.init(address="auto")
+    current_dir = os.getcwd()
+    os.chdir("cosmos-transfer1")
+    torch.enable_grad(False)
+    torch.serialization.add_safe_globals([BytesIO])
+    cfg = args
+    misc.set_random_seed(cfg.seed)
 
-        # Distribute the tasks among the actors
-        futures = []
-        for prompt, hdmap, lidar, video_save_name in zip(prompts, hdmaps, lidars, video_save_names):
-            current_control_inputs = control_inputs.copy()
-            if "hdmap" in current_control_inputs.keys():
-                current_control_inputs["hdmap"]["input_control"] = hdmap
-            if "lidar" in current_control_inputs.keys():
-                current_control_inputs["lidar"]["input_control"] = lidar
-            
-            future = demo.remote(args, current_control_inputs, video_save_name, prompt)
-            futures.append(future)
+    device_rank = 0
+    process_group = None
+    if cfg.num_gpus > 1:
+        from megatron.core import parallel_state
 
-        # Monitor progress using tqdm
-        progress_bar = tqdm(total=len(futures), desc="Generating videos")
-        while len(futures):
-            done_id, futures = ray.wait(futures)
-            progress_bar.update(len(done_id))
-            for obj_ref in done_id:
-                try:
-                    ray.get(obj_ref)
-                except Exception as e:
-                    print(f"Exception in processing video: {e}")
-        progress_bar.close()
+        from cosmos_transfer1.utils import distributed
 
-        # Shutdown Ray
-        ray.shutdown()
+        distributed.init()
+        parallel_state.initialize_model_parallel(context_parallel_size=cfg.num_gpus)
+        process_group = parallel_state.get_context_parallel_group()
 
-    else:
-        for prompt, hdmap, lidar, video_save_name in zip(prompts, hdmaps, lidars, video_save_names):
-            current_control_inputs = control_inputs.copy()
-            if "hdmap" in current_control_inputs.keys():
-                current_control_inputs["hdmap"]["input_control"] = hdmap
-            if "lidar" in current_control_inputs.keys():
-                current_control_inputs["lidar"]["input_control"] = lidar
-            # run the demo
-            demo(
-                args,
-                current_control_inputs,
-                video_save_name,
-                prompt,
-            )
+        device_rank = distributed.get_rank(process_group)
+
+    checkpoint = BASE_7B_CHECKPOINT_AV_SAMPLE_PATH if cfg.is_av_sample else BASE_7B_CHECKPOINT_PATH
+
+    # Initialize transfer generation model pipeline
+    pipeline = DiffusionControl2WorldGenerationPipeline(
+        checkpoint_dir=cfg.checkpoint_dir,
+        checkpoint_name=checkpoint,
+        offload_network=cfg.offload_diffusion_transformer,
+        offload_text_encoder_model=cfg.offload_text_encoder_model,
+        offload_guardrail_models=cfg.offload_guardrail_models,
+        guidance=cfg.guidance,
+        num_steps=cfg.num_steps,
+        fps=cfg.fps,
+        seed=cfg.seed,
+        num_input_frames=cfg.num_input_frames,
+        control_inputs=control_inputs,
+        sigma_max=cfg.sigma_max,
+        blur_strength=cfg.blur_strength,
+        canny_threshold=cfg.canny_threshold,
+        upsample_prompt=cfg.upsample_prompt,
+        offload_prompt_upsampler=cfg.offload_prompt_upsampler,
+        process_group=process_group,
+        regional_prompts=[]
+    )
+
+    for prompt, hdmap, lidar, video_save_name in zip(prompts, hdmaps, lidars, video_save_names):
+        current_control_inputs = control_inputs.copy()
+        if "hdmap" in current_control_inputs.keys():
+            current_control_inputs["hdmap"]["input_control"] = hdmap
+        if "lidar" in current_control_inputs.keys():
+            current_control_inputs["lidar"]["input_control"] = lidar
+        # run the demo
+        demo(
+            cfg,
+            pipeline,
+            current_control_inputs,
+            video_save_name,
+            prompt,
+        )
+
+    os.chdir(current_dir)
+    # clean up properly
+    if cfg.num_gpus > 1:
+        parallel_state.destroy_model_parallel()
+        import torch.distributed as dist
+
+        dist.destroy_process_group()
