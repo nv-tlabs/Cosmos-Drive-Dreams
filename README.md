@@ -1,5 +1,7 @@
 # Cosmos-Drive-Dreams
-### [Paper]() | [Models](#cosmos-drive-open-source-summary) | [Dataset](#cosmos-drive-dreams-dataset) | [Toolkits](#cosmos-drive-dreams-toolkits) | [Paper Website](https://research.nvidia.com/labs/toronto-ai/cosmos_drive_dreams)
+### [Paper]() | [Paper Website](https://research.nvidia.com/labs/toronto-ai/cosmos_drive_dreams)
+### [Models](#cosmos-drive-open-source-summary) | [Dataset](#cosmos-drive-dreams-dataset) | [Toolkits](#cosmos-drive-dreams-toolkits) | [SDG Pipeline](#cosmos-drive-dreams-sdg-pipeline)  |
+
 This is the official code repository of Cosmos-Drive-Dreams - a Synthetic Data Generation (**SDG**) pipeline built on [Cosmos World Foundation Models](https://www.nvidia.com/en-us/ai/cosmos/) for generating diverse and challenging scenarios for Autonomous Vehicle use-cases. 
 
 We open-source our **model weights**, **pipeline toolkits**, and a **dataset** (including cosmos-generated videos, paired HDMap and LiDAR), which consists of **81,802** clips.
@@ -10,15 +12,8 @@ We open-source our **model weights**, **pipeline toolkits**, and a **dataset** (
 
 ## News
 
-- 2025-06-10: Model, Toolkits, and [Dataset](https://huggingface.co/datasets/nvidia/PhysicalAI-Autonomous-Vehicle-Cosmos-Drive-Dreams) (including cosmos-generated video, HDMap, and LiDAR) are released! Stay tuned for the paired GT RGB videos. 
+- 2025-06-10: Model, Toolkits, and Dataset (including cosmos-generated video, HDMap, and LiDAR) are released! Stay tuned for the paired GT RGB videos. 
 
-
-## Contents
-
-1. [Cosmos-Drive: Open-source Summary](#cosmos-drive-open-source-summary)
-2. [Introduction to Cosmos-Drive-Dreams Dataset](#cosmos-drive-dreams-dataset)
-3. [Introduction to Cosmos-Drive-Dreams Tooklits](#cosmos-drive-dreams-toolkits)
-4. [Getting Started with Cosmos-Drive-Dreams SDG Pipeline](#cosmos-drive-dreams-sdg-pipeline)
 
 ## Cosmos-Drive Open-source Summary
 | **Name**                         | **Type**   | **Link** |
