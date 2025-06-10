@@ -1,13 +1,13 @@
-# Cosmos-AV-Sample Toolkits
-This repo provides toolkits for:
+# Cosmos-Drive-Dreams Toolkits
+This sub-repo provides toolkits for:
 
-* A rendering script that converts RDS-HQ datasets into input videos (LiDAR and HDMAP) compatible with [**Cosmos-Transfer1-7B-Sample-AV**](https://github.com/nvidia-cosmos/cosmos-transfer1/blob/main/examples/inference_cosmos_transfer1_7b_sample_av.md).
+* A rendering script that converts RDS-HQ datasets into input videos (LiDAR and HDMAP) compatible with [**Cosmos-Transfer1-7B-Sample-AV**](https://github.com/nvidia-cosmos/cosmos-transfer1/blob/main/examples/inference_cosmos_transfer1_7b_sample_av.md) and [**Cosmos-Transfer1-7B-Sample-AV-Multiview**](https://github.com/nvidia-cosmos/cosmos-transfer1/blob/main/examples/inference_cosmos_transfer1_7b_sample_av_single2multiview.md).
 
 * A conversion script that converts open-source datasets (e.g., Waymo Open Dataset) into RDS-HQ format, so you can reuse the rendering script to render the input videos.
 
 * An interactive visualization tool to visualize the RDS-HQ dataset and generate novel ego trajectories.
 
-* 10 examples (collected by NVIDIA) of input prompts in raw format to help understand how to interface with the model. 
+* 10 examples of input prompts in raw format to help understand how to interface with the model. We also provide the large-scale dataset [here](https://huggingface.co/datasets/nvidia/PhysicalAI-Autonomous-Vehicle-Cosmos-Synthetic).
 
 **[[Paper]](https://arxiv.org/abs/2503.14492)**
 **[[Model Code]](https://github.com/nvidia-cosmos/cosmos-transfer1)**
@@ -43,7 +43,7 @@ This python script will launch a [viser](https://github.com/nerfstudio-project/v
 ![viser](../assets/viser.png)
 
 > [!NOTE]
-> You can run this script in a server with VS Code + remote-ssh plugin. VS Code will automatically forward the port of viser to the local host. 
+> You can run this script on a server with VS Code + remote-ssh plugin. VS Code will automatically forward the port of viser to the local host. 
 
 
 ## Rendering Cosmos Input Control Video
@@ -117,29 +117,5 @@ We provide a conversion and rendering script for the Waymo Open Dataset as an ex
 </div>
 
 
-
-
 ## Prompting During Inference
-We provide a captioning modification example to help users reproduce our results. To modify the weather in a certain prompt, we use a LLM. Below is an example transformation request:
-```bash
-Given the prompt:
-"The video is captured from a camera mounted on a car. The camera is facing forward. The video depicts a driving scene in an urban environment. The car hood is white. The camera is positioned inside a vehicle, providing a first-person perspective of the road ahead. The street is lined with modern buildings, including a tall skyscraper on the right and a historic-looking building on the left. The road is clear of traffic, with only a few distant vehicles visible in the distance. The weather appears to be clear and sunny, with a blue sky and some clouds. The time of day seems to be daytime, as indicated by the bright sunlight and shadows. The scene is quiet and devoid of pedestrians or other obstacles, suggesting a smooth driving experience."
-Modify the environment to:
-1. Morning with fog
-2. Golden hour with sunlight
-3. Heavy snowy day
-4. Heavy rainy day
-5. Heavy fog in the evening
-...
-```
-You can use the modified text prompts as input to our model.
-
-## Citation
-```bibtex
-@misc{nvidia2025cosmostransfer1,
-  title     = {Cosmos Transfer1: World Generation with Adaptive Multimodal Control},
-  author    = {NVIDIA}, 
-  year      = {2025},
-  url       = {https://arxiv.org/abs/2503.14492}
-}
-```
+We provide a captioning modification example to help users reproduce our results. Please refer to [prompt rewriter](https://github.com/nv-tlabs/Cosmos-Drive-Dreams/tree/main?tab=readme-ov-file#2-prompt-rewriting).
