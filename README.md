@@ -1,6 +1,6 @@
 # Cosmos-Drive-Dreams
 ### [Paper]() | [Paper Website](https://research.nvidia.com/labs/toronto-ai/cosmos_drive_dreams)
-### [Models](#cosmos-drive-open-source-summary) | [Dataset](#cosmos-drive-dreams-dataset) | [Toolkits](#cosmos-drive-dreams-toolkits) | [SDG Pipeline](#cosmos-drive-dreams-sdg-pipeline)  |
+### [Models](#cosmos-drive-open-source-summary) | [Dataset](#cosmos-drive-dreams-dataset) | [Toolkits](#cosmos-drive-dreams-toolkits) | [SDG Pipeline](#cosmos-drive-dreams-sdg-pipeline)
 
 This is the official code repository of Cosmos-Drive-Dreams - a Synthetic Data Generation (**SDG**) pipeline built on [Cosmos World Foundation Models](https://www.nvidia.com/en-us/ai/cosmos/) for generating diverse and challenging scenarios for Autonomous Vehicle use-cases. 
 
@@ -18,12 +18,12 @@ We open-source our **model weights**, **pipeline toolkits**, and a **dataset** (
 ## Cosmos-Drive Open-source Summary
 | **Name**                         | **Type**   | **Link** |
 |----------------------------------|------------|----------|
-| **7B-AV** (Paper Sec. [2.1])             | model     | [`base_model.pt`](https://huggingface.co/nvidia/Cosmos-Transfer1-7B-Sample-AV) |
-| **7B-MV** (Paper Sec. [2.1])             | model     | [Huggingface Link](https://huggingface.co/nvidia/Cosmos-Predict1-7B-Text2World-Sample-AV-Multiview) |
-| **7B-AV-Transfer** (Paper Sec. [2.2]) | model     | [Huggingface Link](https://huggingface.co/nvidia/Cosmos-Transfer1-7B-Sample-AV) |
-| **7B-MV-Transfer** (Paper Sec. [2.3])     | model     | [Huggingface Link](https://huggingface.co/nvidia/Cosmos-Transfer1-7B-SingleToMultiView-Sample-AV) |
-| **7B-Infer** (Paper Sec. [2.4])        | model     | Under review |
-| **LiDAR-Gen** (Paper Sec. [3])         | model     | Under review |
+| **Cosmos-7B-AV-Sample** (Paper Sec. [2.1])             | model     | [`base_model.pt`](https://huggingface.co/nvidia/Cosmos-Transfer1-7B-Sample-AV) |
+| **Cosmos-7B-Multiview-AV-Sample** (Paper Sec. [2.1])             | model     | [Huggingface Link](https://huggingface.co/nvidia/Cosmos-Predict1-7B-Text2World-Sample-AV-Multiview) |
+| **Cosmos-Transfer1-7B-Sample-AV** (Paper Sec. [2.2]) | model     | [Huggingface Link](https://huggingface.co/nvidia/Cosmos-Transfer1-7B-Sample-AV) |
+| **Cosmos-7B-Single2Multiview-Sample-AV** (Paper Sec. [2.3])     | model     | [Huggingface Link](https://huggingface.co/nvidia/Cosmos-Transfer1-7B-SingleToMultiView-Sample-AV) |
+| **Cosmos-7B-Annotate-Sample-AV** (Paper Sec. [2.4])        | model     | Under review |
+| **Cosmos-7B-LiDAR-GEN-Sample-AV** (Paper Sec. [3])         | model     | Under review |
 | **Cosmos Toolkit**                | SDG tool   | [Cosmos Drive Dreams Toolkits](https://github.com/nv-tlabs/Cosmos-Drive-Dreams/tree/main/cosmos-drive-dreams-toolkits) |
 | **RDS-HQ Dataset Subset**        | dataset    | [Huggingface Dataset](https://huggingface.co/datasets/nvidia/PhysicalAI-Autonomous-Vehicle-Cosmos-Drive-Dreams) |
 | **Cosmos-Drive-Dreams Dataset**     | dataset    | [Huggingface Dataset](https://huggingface.co/datasets/nvidia/PhysicalAI-Autonomous-Vehicle-Cosmos-Drive-Dreams) |
