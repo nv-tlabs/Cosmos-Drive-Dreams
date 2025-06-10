@@ -1,23 +1,12 @@
 # Cosmos-Drive-Dreams
-### [Paper]() | [Dataset](#cosmos-drive-dreams-dataset) | [Model](#cosmos-drive-open-source-summary) | [Paper Website](https://research.nvidia.com/labs/toronto-ai/cosmos_drive_dreams)
+### [Paper]() | [Models](#cosmos-drive-open-source-summary) | [Dataset](#cosmos-drive-dreams-dataset) | [Toolkits](#cosmos-drive-dreams-toolkits) | [Paper Website](https://research.nvidia.com/labs/toronto-ai/cosmos_drive_dreams)
 This is the official code repository of Cosmos-Drive-Dreams - a Synthetic Data Generation (**SDG**) pipeline built on [Cosmos World Foundation Models](https://www.nvidia.com/en-us/ai/cosmos/) for generating diverse and challenging scenarios for Autonomous Vehicle use-cases. 
 
-We open-source our **model weights**, **pipeline toolkit**, and a **dataset** (including cosmos-generated videos, paired HDMap and LiDAR), which consists of **81,802** clips.
+We open-source our **model weights**, **pipeline toolkits**, and a **dataset** (including cosmos-generated videos, paired HDMap and LiDAR), which consists of **81,802** clips.
 
 <p align="center">
     <img src="assets/teaser.png" alt="Cosmos-Drive-Dream Teaser">
 </p>
-
-Currently, this repository implements the following stages of the Cosmos-Drive-Dreams pipeline:
-1. Rendering structured labels to condition videos
-2. Prompt rewriting 
-3. Front-view video generation
-3. Multi-view expansion
-4. Filtering via VLM
-
-Furthermore, this repository provides a full toolkit for visualizing structured labels [here](https://github.com/nv-tlabs/Cosmos-Drive-Dreams/tree/main/cosmos-drive-dreams-toolkits#visualize-dataset), editing structured labels interactively to produce novel scenarios [here](https://github.com/nv-tlabs/Cosmos-Drive-Dreams/tree/main/cosmos-drive-dreams-toolkits#generate-novel-ego-trajectory), and converting Waymo Open Dataset to our format [here](https://github.com/nv-tlabs/Cosmos-Drive-Dreams/tree/main/cosmos-drive-dreams-toolkits#convert-public-datasets).
-
-Other stages, such as inferring condition video from unlabeled RGB video and LiDAR Generation from multi-view video, will soon arrive in this repo. 
 
 ## News
 
@@ -28,7 +17,8 @@ Other stages, such as inferring condition video from unlabeled RGB video and LiD
 
 1. [Cosmos-Drive: Open-source Summary](#cosmos-drive-open-source-summary)
 2. [Introduction to Cosmos-Drive-Dreams Dataset](#cosmos-drive-dreams-dataset)
-3. [Getting Started with Cosmos-Drive-Dreams SDG Pipeline](#cosmos-drive-dreams-sdg-pipeline)
+3. [Introduction to Cosmos-Drive-Dreams Tooklits](#cosmos-drive-dreams-toolkits)
+4. [Getting Started with Cosmos-Drive-Dreams SDG Pipeline](#cosmos-drive-dreams-sdg-pipeline)
 
 ## Cosmos-Drive Open-source Summary
 | **Name**                         | **Type**   | **Link** |
@@ -39,7 +29,7 @@ Other stages, such as inferring condition video from unlabeled RGB video and LiD
 | **7B-MV-Transfer** (Paper Sec. [2.3])     | model     | [Huggingface Link](https://huggingface.co/nvidia/Cosmos-Transfer1-7B-SingleToMultiView-Sample-AV) |
 | **7B-Infer** (Paper Sec. [2.4])        | model     | Under review |
 | **LiDAR-Gen** (Paper Sec. [3])         | model     | Under review |
-| **Cosmos Toolkit**                | SDG tool   | [GitHub - Cosmos Drive Dreams Toolkits](https://github.com/nv-tlabs/Cosmos-Drive-Dreams/tree/main/cosmos-drive-dreams-toolkits) |
+| **Cosmos Toolkit**                | SDG tool   | [Cosmos Drive Dreams Toolkits](https://github.com/nv-tlabs/Cosmos-Drive-Dreams/tree/main/cosmos-drive-dreams-toolkits) |
 | **RDS-HQ Dataset Subset**        | dataset    | [Huggingface Dataset](https://huggingface.co/datasets/nvidia/PhysicalAI-Autonomous-Vehicle-Cosmos-Drive-Dreams) |
 | **Cosmos-Drive-Dreams Dataset**     | dataset    | [Huggingface Dataset](https://huggingface.co/datasets/nvidia/PhysicalAI-Autonomous-Vehicle-Cosmos-Drive-Dreams) |
 
@@ -54,14 +44,17 @@ Detailed information can be found on the [Huggingface page](https://huggingface.
 Coming soon
 ```
 
-### Tutorial / Toolkits
+### Tutorial
+
+- Visualizing the structured labels [here](https://github.com/nv-tlabs/Cosmos-Drive-Dreams/tree/main/cosmos-drive-dreams-toolkits#visualize-dataset)
+
+## Cosmos-Drive-Dreams Toolkits
 
 - Visualizing the structured labels [here](https://github.com/nv-tlabs/Cosmos-Drive-Dreams/tree/main/cosmos-drive-dreams-toolkits#visualize-dataset)
 
 - Editing structured labels interactively to produce novel scenarios [here](https://github.com/nv-tlabs/Cosmos-Drive-Dreams/tree/main/cosmos-drive-dreams-toolkits#generate-novel-ego-trajectory)
 
 - Converting Waymo Open Dataset to our format [here](https://github.com/nv-tlabs/Cosmos-Drive-Dreams/tree/main/cosmos-drive-dreams-toolkits#convert-public-datasets)
-
 
 ## Cosmos-Drive-Dreams SDG Pipeline
 We provide a simple walkthrough including all stages of our SDG pipeline through example data available in the assets folder; no additional data download is necessary. 
