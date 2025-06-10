@@ -34,6 +34,11 @@ Cosmos-Drive-Dreams Synthetic Dataset contains labels (HDMap, BBox, and LiDAR) f
 
 Detailed information can be found on the [Huggingface page](https://huggingface.co/datasets/nvidia/PhysicalAI-Autonomous-Vehicle-Cosmos-Synthetic).
 
+### Download
+```bash
+
+```
+
 ### Tutorial / Toolkits
 
 - Visualizing the dataset [here](https://github.com/nv-tlabs/Cosmos-Drive-Dreams/tree/main/cosmos-drive-dreams-toolkits#visualize-dataset)
@@ -42,10 +47,6 @@ Detailed information can be found on the [Huggingface page](https://huggingface.
 
 - Converting Waymo Open Dataset to our format [here](https://github.com/nv-tlabs/Cosmos-Drive-Dreams/tree/main/cosmos-drive-dreams-toolkits#convert-public-datasets)
 
-### Download
-```bash
-
-```
 
 ## Cosmos-Drive-Dreams SDG Pipeline
 We provide a simple walkthrough including all stages of our SDG pipeline through example data available in the assets folder; no additional data download is necessary. 
@@ -104,7 +105,11 @@ Coming soon
 ```bibtex
 @misc{nvidia2025cosmostransfer1,
   title     = {Cosmos-Drive-Dreams: Scalable Synthetic Driving Data Generation with World Foundation Models},
-  author    = {NVIDIA}, 
+  author = {Ren, Xuanchi and Lu, Yifan and Cao, Tianshi and Gao, Ruiyuan and
+          Huang, Shengyu and Sabour, Amirmojtaba and Shen, Tianchang and
+          Pfaff, Tobias and Wu, Jay Zhangjie and Chen, Runjian and
+          Kim, Seung Wook and Gao, Jun and Leal-Taixe, Laura and
+          Chen, Mike and Fidler, Sanja and Ling, Huan}
   year      = {2025},
   url       = {https://arxiv.org/abs/}
 }
