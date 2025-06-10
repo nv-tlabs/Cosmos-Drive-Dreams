@@ -94,12 +94,18 @@ python scripts/rewrite_caption.py -i assets/example/captions -o outputs/captions
 The output will be saved at `outputs/captions/2d23*json`.
 
 ### 3. Front-view Video Generation
-Next, we use [Cosmos-Transfer1-7b-Sample-AV](https://github.com/nvidia-cosmos/cosmos-transfer1/blob/main/examples/inference_cosmos_transfer1_7b_sample_av.md) to generate a 121-frame RGB video from the HD Map condition video and text prompt. 
+Next, we use [Cosmos-Transfer1-7b-Sample-AV](https://huggingface.co/nvidia/Cosmos-Transfer1-7B-Sample-AV) to generate a 121-frame RGB video from the HD Map condition video and text prompt. 
 ```bash
 PYTHONPATH="cosmos-transfer1" python scripts/generate_video_single_view.py --caption_path outputs/captions --input_path outputs --video_save_folder outputs/single_view --checkpoint_dir checkpoints/ --is_av_sample --controlnet_specs cosmos-transfer1/assets/sample_av_hdmap_spec.json
 ```
+For detailed description on how to run this model and how to adjust inference parameters, see [this readme](https://github.com/nvidia-cosmos/cosmos-transfer1/blob/main/examples/inference_cosmos_transfer1_7b_sample_av.md).
+
 ### 4. Multiview Video Generation
-Coming soon
+After single view videos have been generated, we use [Cosmos-Transfer1-7b-Sample-AV-Single2MultiView](https://huggingface.co/nvidia/Cosmos-Transfer1-7B-Sample-AV)
+```bash
+CUDA_HOME=$CONDA_PREFIX PYTHONPATH="cosmos-transfer1" python scripts/generate_video_multi_view.py --caption_path outputs/captions --input_path outputs --input_view_path outputs/single_view --video_save_folder outputs/multi_view --checkpoint_dir checkpoints --is_av_sample --controlnet_specs cosmos-transfer1/assets/sample_av_hdmap_multiview_spec.json
+```
+For detailed description on how to run this model and how to adjust inference parameters, see [this readme](https://github.com/nvidia-cosmos/cosmos-transfer1/blob/main/examples/inference_cosmos_transfer1_7b_sample_av_single2multiview.md).
 
 ### 5. Filtering via VLM
 Coming soon
