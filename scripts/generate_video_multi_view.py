@@ -15,18 +15,24 @@
 # limitations under the License.
 
 import argparse
+import einops
 import json
 import os
+import math
+import numpy as np
 from tqdm import tqdm
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"  # Workaround to suppress MP warning
 
 import sys
+import copy
 from io import BytesIO
 
 import torch
 
-from cosmos_transfer1.checkpoints import BASE_7B_CHECKPOINT_AV_SAMPLE_PATH, BASE_7B_CHECKPOINT_PATH
+from cosmos_transfer1.checkpoints import (BASE_7B_CHECKPOINT_AV_SAMPLE_PATH, BASE_7B_CHECKPOINT_PATH,
+                                          BASE_v2w_7B_SV2MV_CHECKPOINT_AV_SAMPLE_PATH,
+                                          BASE_t2w_7B_SV2MV_CHECKPOINT_AV_SAMPLE_PATH)
 from cosmos_transfer1.utils import log, misc
 from cosmos_transfer1.utils.io import read_prompts_from_file, save_video
 
@@ -58,46 +64,108 @@ def load_controlnet_specs(cfg):
                 continue
     return controlnet_specs, args
 
-    
+
+def create_video_grid(video_tensors, padding=0, n_row=2):
+    """
+    Arrange a list of PyTorch video tensors into a grid. When number of videos is not divisible by n_row, fit videos in
+     last row with black padding on the sides.
+
+    Args:
+        video_tensors (list): List of PyTorch tensors with shape [T, C, H, W] where:
+            - T is the number of frames
+            - C is the number of channels (typically 3 for RGB)
+            - H is the height of each frame
+            - W is the width of each frame
+        padding (int, optional): Padding between videos in pixels. Defaults to 0.
+        n_row (int, optional): number of rows
+
+    Returns:
+        torch.Tensor: A tensor of shape [T, C, grid_H, grid_W] representing the video grid
+    """
+
+    # Check if all videos have the same number of frames, channels, and dimensions
+    num_frames = video_tensors[0].shape[0]
+    num_channels = video_tensors[0].shape[1]
+    height = video_tensors[0].shape[2]
+    width = video_tensors[0].shape[3]
+
+    for i, video in enumerate(video_tensors):
+        if video.shape[0] != num_frames:
+            raise ValueError(f"Video {i} has {video.shape[0]} frames, expected {num_frames}")
+        if video.shape[1] != num_channels:
+            raise ValueError(f"Video {i} has {video.shape[1]} channels, expected {num_channels}")
+
+    # Calculate grid dimensions
+    n_vids = len(video_tensors)
+    grid_height = n_row * height + (n_row - 1) * padding
+    n_col = math.ceil(n_vids / n_row)
+    grid_width = n_col * width + (n_col - 1) * padding
+    n_last_row = n_vids - (n_row - 1) * n_col
+
+    # Create an empty grid filled with zeros (black)
+    grid = torch.zeros(
+        (num_frames, num_channels, grid_height, grid_width),
+        dtype=video_tensors[0].dtype,
+        device=video_tensors[0].device,
+    )
+
+    # Place videos on the top row (4 videos)
+    for i in range(n_row):
+        if i == (n_row - 1):
+            nc = n_last_row
+            # Calculate the starting position for the bottom row to center the remaining videos
+            bottom_row_width = nc * width + (nc - 1) * padding
+            left_padding = (grid_width - bottom_row_width) // 2
+        else:
+            nc = n_col
+            left_padding = 0
+        for j in range(nc):
+            vid = i * n_col + j
+            y_offset = i * (height + padding)
+            x_offset = left_padding + j * (width + padding)
+            grid[:, :, y_offset : y_offset + height, x_offset : x_offset + width] = video_tensors[vid]
+
+    return grid
+
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Control to world generation demo script", conflict_handler="resolve")
 
     # Add transfer specific arguments
     parser.add_argument("--caption_path", type=str, required=True, help="folder containing the json files of captions")
     parser.add_argument("--input_path", type=str, required=True, help="folder containing the hdmap/lidar condition videos")
+    parser.add_argument("--input_view_path", type=str, required=True,
+                        help="folder containing the single view videos")
     parser.add_argument(
         "--negative_prompt",
         type=str,
         default="The video captures a game playing, with bad crappy graphics and cartoonish frames. It represents a recording of old outdated games. The lighting looks very fake. The textures are very raw and basic. The geometries are very primitive. The images are very pixelated and of poor CG quality. There are many subtitles in the footage. Overall, the video is unrealistic at all.",
         help="negative prompt which the sampled video condition on",
     )
+    parser.add_argument("--sigma_max", type=float, default=80.0, help="sigma_max for partial denoising")
     parser.add_argument(
-        "--input_video_path",
+        "--view_condition_video",
         type=str,
         default="",
-        help="Optional input RGB video path",
+        help="We require that only a single condition view is specified and this video is treated as conditioning for that view. "
+             "This video/videos should have the same duration as control videos",
+    )
+    parser.add_argument(
+        "--initial_condition_video",
+        type=str,
+        default="",
+        help="Can be either a path to a mp4 or a directory. If it is a mp4, we assume"
+             "that it is a video temporally concatenated with the same number of views as the model. "
+             "If it is a directory, we assume that the file names evaluate to integers that correspond to a view index,"
+             " e.g. '000.mp4', '003.mp4', '004.mp4'."
+             "This video/videos should have at least num_input_frames number of frames for each view. Frames will be taken from the back"
+             "of the video(s) if the duration of the video in each view exceed num_input_frames",
     )
     parser.add_argument(
         "--num_input_frames",
         type=int,
         default=1,
-        help="Number of conditional frames for long video generation",
-        choices=[1],
-    )
-    parser.add_argument("--sigma_max", type=float, default=80.0, help="sigma_max for partial denoising")
-    parser.add_argument(
-        "--blur_strength",
-        type=str,
-        default="medium",
-        choices=["very_low", "low", "medium", "high", "very_high"],
-        help="blur strength.",
-    )
-    parser.add_argument(
-        "--canny_threshold",
-        type=str,
-        default="medium",
-        choices=["very_low", "low", "medium", "high", "very_high"],
-        help="blur strength of canny threshold applied to input. Lower means less blur or more detected edges, which means higher fidelity to input.",
+        help="Number of conditional frames for long video generation, not used in t2w",
+        choices=[1, 9],
     )
     parser.add_argument(
         "--controlnet_specs",
@@ -158,7 +226,7 @@ def parse_arguments() -> argparse.Namespace:
         action="store_true",
         help="Offload prompt upsampler model after inference",
     )
-
+    parser.add_argument("--n_clip_max", type=int, default=-1, help="Maximum number of video extension loop")
     cmd_args = parser.parse_args()
 
     # Load and parse JSON input
@@ -180,6 +248,7 @@ def parse_arguments() -> argparse.Namespace:
 @decorator
 def demo(cfg, 
          control_inputs,
+         input_view_vid,
          video_save_name,
          prompt,
          ):
@@ -206,9 +275,9 @@ def demo(cfg,
     If guardrails block the generation, a critical log message is displayed
     and the function continues to the next prompt if available.
     """
-    from cosmos_transfer1.diffusion.inference.inference_utils import validate_controlnet_specs
+    from cosmos_transfer1.diffusion.inference.transfer_multiview import validate_controlnet_specs
     from cosmos_transfer1.diffusion.inference.preprocessors import Preprocessors
-    from cosmos_transfer1.diffusion.inference.world_generation_pipeline import DiffusionControl2WorldGenerationPipeline
+    from cosmos_transfer1.diffusion.inference.world_generation_pipeline import DiffusionControl2WorldMultiviewGenerationPipeline
     current_dir = os.getcwd()
     os.chdir("cosmos-transfer1")
     torch.enable_grad(False)
@@ -232,10 +301,16 @@ def demo(cfg,
 
     preprocessors = Preprocessors()
 
-    checkpoint = BASE_7B_CHECKPOINT_AV_SAMPLE_PATH if cfg.is_av_sample else BASE_7B_CHECKPOINT_PATH
+    if cfg.initial_condition_video:
+        cfg.is_lvg_model = True
+        checkpoint = BASE_v2w_7B_SV2MV_CHECKPOINT_AV_SAMPLE_PATH
+    else:
+        cfg.is_lvg_model = False
+        cfg.num_input_frames = 0
+        checkpoint = BASE_t2w_7B_SV2MV_CHECKPOINT_AV_SAMPLE_PATH
 
     # Initialize transfer generation model pipeline
-    pipeline = DiffusionControl2WorldGenerationPipeline(
+    pipeline = DiffusionControl2WorldMultiviewGenerationPipeline(
         checkpoint_dir=cfg.checkpoint_dir,
         checkpoint_name=checkpoint,
         offload_network=cfg.offload_diffusion_transformer,
@@ -247,69 +322,86 @@ def demo(cfg,
         seed=cfg.seed,
         num_input_frames=cfg.num_input_frames,
         control_inputs=control_inputs,
-        sigma_max=cfg.sigma_max,
-        blur_strength=cfg.blur_strength,
-        canny_threshold=cfg.canny_threshold,
-        upsample_prompt=cfg.upsample_prompt,
-        offload_prompt_upsampler=cfg.offload_prompt_upsampler,
+        sigma_max=80.0,
+        num_video_frames=57,
         process_group=process_group,
-        regional_prompts=[]
+        height=576,
+        width=1024,
+        is_lvg_model=cfg.is_lvg_model,
+        n_clip_max=cfg.n_clip_max,
+        regional_prompts = []
     )
 
-    if cfg.batch_input_path:
-        log.info(f"Reading batch inputs from path: {cfg.batch_input_path}")
-        prompts = read_prompts_from_file(cfg.batch_input_path)
-    else:
-        # Single prompt case
-        prompts = [{"prompt": prompt, "visual_input": cfg.input_video_path}]
 
-    os.makedirs(cfg.video_save_folder, exist_ok=True)
-    for i, input_dict in enumerate(prompts):
-        current_prompt = input_dict.get("prompt", None)
-        current_video_path = input_dict.get("visual_input", None)
+    current_prompt = [prompt,
+                      "The video is captured from a camera mounted on a car. The camera is facing to the left.",
+                      "The video is captured from a camera mounted on a car. The camera is facing to the right.",
+                      "The video is captured from a camera mounted on a car. The camera is facing backwards.",
+                      "The video is captured from a camera mounted on a car. The camera is facing the rear left side.",
+                      "The video is captured from a camera mounted on a car. The camera is facing the rear right side."
+                      ]
+    current_video_path = ""
+    video_save_subfolder = str(os.path.join(cfg.video_save_folder, video_save_name))
+    os.makedirs(video_save_subfolder, exist_ok=True)
+    current_control_inputs = copy.deepcopy(control_inputs)
 
-        # if control inputs are not provided, run respective preprocessor (for seg and depth)
-        preprocessors(current_video_path, current_prompt, control_inputs, cfg.video_save_folder)
+    # if control inputs are not provided, run respective preprocessor (for seg and depth)
+    preprocessors(current_video_path, current_prompt, current_control_inputs, video_save_subfolder)
 
-        # Generate video
-        generated_output = pipeline.generate(
-            prompt=current_prompt,
-            video_path=current_video_path,
-            negative_prompt=cfg.negative_prompt,
-            control_inputs=control_inputs,
-            save_folder=cfg.video_save_folder,
-        )
-        if generated_output is None:
-            log.critical("Guardrail blocked generation.")
-            continue
-        video, prompt = generated_output
-        video = video[0]
-        prompt = prompt[0]
-        if cfg.batch_input_path:
-            video_save_path = os.path.join(cfg.video_save_folder, f"{i}.mp4")
-            prompt_save_path = os.path.join(cfg.video_save_folder, f"{i}.txt")
-        else:
-            video_save_path = os.path.join(cfg.video_save_folder, f"{video_save_name}.mp4")
-            prompt_save_path = os.path.join(cfg.video_save_folder, f"{video_save_name}.txt")
+    # Generate video
+    generated_output = pipeline.generate(
+        prompts=current_prompt,
+        view_condition_video=input_view_vid,
+        initial_condition_video=cfg.initial_condition_video,
+        control_inputs=current_control_inputs,
+    )
+    if generated_output is None:
+        log.critical("Guardrail blocked generation.")
+    video, prompt = generated_output
 
-        if device_rank == 0:
-            # Save video
-            os.makedirs(os.path.dirname(video_save_path), exist_ok=True)
+    if device_rank == 0:
+        # Save video
+        video = torch.from_numpy(video)
+        video_segments = einops.rearrange(video, "(v t) h w c -> v t c h w", v=6)
+        video_segments_vthwc = video_segments.permute(0, 1, 3, 4, 2).numpy().astype(np.uint8)
+        for i in range(6):
             save_video(
-                video=video,
-                fps=cfg.fps,
-                H=video.shape[1],
-                W=video.shape[2],
+                video=video_segments_vthwc[i],
+                fps=args.fps,
+                H=video_segments_vthwc[i].shape[1],
+                W=video_segments_vthwc[i].shape[2],
                 video_save_quality=8,
-                video_save_path=video_save_path,
+                video_save_path=os.path.join(video_save_subfolder, f"{i}.mp4"),
             )
 
-            # Save prompt to text file alongside video
-            with open(prompt_save_path, "wb") as f:
-                f.write(prompt.encode("utf-8"))
+        grid = create_video_grid(
+            [
+                video_segments[1],
+                video_segments[0],
+                video_segments[2],
+                video_segments[4],
+                video_segments[3],
+                video_segments[5],
+            ],
+            n_row=2,
+        )
 
-            log.info(f"Saved video to {video_save_path}")
-            log.info(f"Saved prompt to {prompt_save_path}")
+        grid = einops.rearrange(grid, "t c h w -> t h w c")
+        grid = grid.numpy()
+        save_video(
+            video=grid,
+            fps=cfg.fps,
+            H=grid.shape[1],
+            W=grid.shape[2],
+            video_save_quality=8,
+            video_save_path=os.path.join(video_save_subfolder, f"grid.mp4"),
+        )
+
+        # Save prompt to text file alongside video
+        with open(os.path.join(video_save_subfolder, "prompt.json"), "wb") as f:
+            f.write(";".join(prompt).encode("utf-8"))
+
+        log.info(f"Saved video to {video_save_subfolder}")
 
     # clean up properly
     if cfg.num_gpus > 1:
@@ -325,6 +417,7 @@ if __name__ == "__main__":
 
     caption_path = os.path.abspath(args.caption_path)
     data_path = os.path.abspath(args.input_path)
+    input_view_path = os.path.abspath(args.input_view_path)
     args.video_save_folder = os.path.abspath(args.video_save_folder)
     # load all the json files in the caption_path
 
@@ -333,8 +426,15 @@ if __name__ == "__main__":
     prompts = []
     hdmaps = []
     lidars = []
+    input_view_vids = []
     video_save_names = []
-
+    view_names = ["ftheta_camera_front_wide_120fov",
+                  "ftheta_camera_cross_left_120fov",
+                  "ftheta_camera_cross_right_120fov",
+                  "ftheta_camera_rear_tele_30fov",
+                  "ftheta_camera_rear_left_70fov",
+                  "ftheta_camera_rear_right_70fov"
+                  ]
     for json_file in tqdm(json_files):
         sample_name = json_file.split('.')[0]
         with open(os.path.join(caption_path, json_file), 'r') as f:
@@ -342,15 +442,26 @@ if __name__ == "__main__":
             
         for variation in data.keys():
             prompt = data[variation]
-            hdmap = os.path.join(data_path, "hdmap", "ftheta_camera_front_wide_120fov", f"{sample_name}_0.mp4")
+            hdmap = []
+            for vname in view_names:
+                hdmap.append(os.path.join(data_path, "hdmap", vname, f"{sample_name}_0.mp4"))
+
+            if not all([os.path.exists(hdmap_v) for hdmap_v in hdmap]):
+                print(f"hdmap files {hdmap} does not exist")
+                continue
+
+            input_view_vid = os.path.join(input_view_path, f"{sample_name}_{variation}.mp4")
             # make sure the file exists
-            if not os.path.exists(hdmap):
-                print(f"hdmap file {hdmap} does not exist")
+            if not os.path.exists(input_view_vid):
+                print(f"input view file {input_view_vid} does not exist")
                 continue
 
             if "lidar" in control_inputs.keys():
-                lidar = os.path.join(data_path, "lidar", "ftheta_camera_front_wide_120fov", f"{sample_name}_0.mp4")
-                if not os.path.exists(lidar):
+                lidar = []
+                for vname in view_names:
+                    lidar.append(os.path.join(data_path, "lidar", vname, f"{sample_name}_0.mp4"))
+
+                if not all([os.path.exists(lidar_v) for lidar_v in lidar]):
                     print(f"lidar file {lidar} does not exist")
                     continue
             else:
@@ -368,6 +479,7 @@ if __name__ == "__main__":
             prompts.append(prompt)
             hdmaps.append(hdmap)
             lidars.append(lidar)
+            input_view_vids.append(input_view_vid)
             video_save_names.append(video_save_name)
 
     if len(prompts) == 0:
@@ -380,14 +492,14 @@ if __name__ == "__main__":
 
         # Distribute the tasks among the actors
         futures = []
-        for prompt, hdmap, lidar, video_save_name in zip(prompts, hdmaps, lidars, video_save_names):
+        for prompt, hdmap, lidar, input_view_vid, video_save_name in zip(prompts, hdmaps, lidars, input_view_vids, video_save_names):
             current_control_inputs = control_inputs.copy()
             if "hdmap" in current_control_inputs.keys():
                 current_control_inputs["hdmap"]["input_control"] = hdmap
             if "lidar" in current_control_inputs.keys():
                 current_control_inputs["lidar"]["input_control"] = lidar
             
-            future = demo.remote(args, current_control_inputs, video_save_name, prompt)
+            future = demo.remote(args, current_control_inputs, input_view_vid, video_save_name, prompt)
             futures.append(future)
 
         # Monitor progress using tqdm
@@ -406,7 +518,7 @@ if __name__ == "__main__":
         ray.shutdown()
 
     else:
-        for prompt, hdmap, lidar, video_save_name in zip(prompts, hdmaps, lidars, video_save_names):
+        for prompt, hdmap, lidar, input_view_vid, video_save_name in zip(prompts, hdmaps, lidars, input_view_vids, video_save_names):
             current_control_inputs = control_inputs.copy()
             if "hdmap" in current_control_inputs.keys():
                 current_control_inputs["hdmap"]["input_control"] = hdmap
@@ -416,6 +528,7 @@ if __name__ == "__main__":
             demo(
                 args,
                 current_control_inputs,
+                input_view_vid,
                 video_save_name,
                 prompt,
             )
