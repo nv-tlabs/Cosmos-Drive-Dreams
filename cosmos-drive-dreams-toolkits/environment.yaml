@@ -1,0 +1,27 @@
+name: cosmos-av-toolkits
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - conda-forge::ffmpeg
+  - numpy
+  - scipy
+  - click
+  - tqdm
+  - termcolor
+  - imageio
+  - trimesh
+  - pip:
+    - torch==2.4.0 --index-url=https://download.pytorch.org/whl/cu121
+    - opencv-python-headless
+    - pymap3d
+    - einops
+    - pyproj
+    - webdataset
+    - imageio[ffmpeg]
+    - decord
+    - viser
+    - python-pycg
+    - ray[default]
+    - shapely
+    - transformers

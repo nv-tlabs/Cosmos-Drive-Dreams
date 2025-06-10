@@ -1,0 +1,3 @@
+[submodule "cosmos-transfer1"]
+	path = cosmos-transfer1
+	url = https://github.com/nvidia-cosmos/cosmos-transfer1.git

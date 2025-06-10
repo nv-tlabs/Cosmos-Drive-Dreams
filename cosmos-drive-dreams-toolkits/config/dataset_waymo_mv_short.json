@@ -1,0 +1,33 @@
+{
+    "CAMERAS": ["front", "front_left", "front_right", "side_left", "side_right"],
+    "MINIMAP_TYPES": [
+        "lanelines",
+        "road_boundaries",
+        "crosswalks"
+    ],
+    "CAMERAS_TO_RDS_HQ": {
+        "front": "camera_front_wide_120fov",
+        "front_left": "camera_cross_left_120fov",
+        "front_right": "camera_cross_right_120fov",
+        "side_left": "camera_rear_left_120fov",
+        "side_right": "camera_rear_right_120fov"
+    },
+    "INPUT_POSE_FPS": 30,
+    "INPUT_LIDAR_FPS": 10,
+    "COSMOS_RESOLUTION": [1280,704],
+    "NOT_POST_TRAINING": {
+        "RESIZE_RESOLUTION": [1280,704],
+        "TO_COSMOS_RESOLUTION": "resize",
+        "TARGET_CHUNK_FRAME": 57,
+        "OVERLAP_FRAME": 0,
+        "TARGET_RENDER_FPS": 30,
+        "MAX_CHUNK": 1
+    },
+    "POST_TRAINING": {
+        "RESIZE_RESOLUTION": [1280,704],
+        "TO_COSMOS_RESOLUTION": "resize",
+        "TARGET_CHUNK_FRAME": 57,
+        "OVERLAP_FRAME": 0,
+        "TARGET_RENDER_FPS": 10
+    }
+}

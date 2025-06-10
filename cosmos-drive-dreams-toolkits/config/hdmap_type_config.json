@@ -1,0 +1,11 @@
+{
+    "lanelines": "polyline",
+    "lanes": "polyline",
+    "poles": "polyline",
+    "road_boundaries": "polyline",
+    "wait_lines": "polyline",
+    "crosswalks": "polygon",
+    "road_markings": "polygon",
+    "traffic_signs": "cuboid3d",
+    "traffic_lights": "cuboid3d"
+}

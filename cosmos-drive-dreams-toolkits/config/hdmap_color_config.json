@@ -1,0 +1,11 @@
+{
+    "lanelines": [98, 183, 249],
+    "lanes": [56, 103, 221],
+    "poles": [66, 40, 144],
+    "road_boundaries": [200, 36, 35],
+    "wait_lines": [185, 63, 34],
+    "crosswalks": [206, 131, 63],
+    "road_markings": [126, 204, 205],
+    "traffic_signs": [131, 175, 155],
+    "traffic_lights": [252, 157, 155]
+}
