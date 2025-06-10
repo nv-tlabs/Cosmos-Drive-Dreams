@@ -2,7 +2,7 @@
 ### [Paper]() | [Dataset](#cosmos-drive-dreams-synthetic-dataset) | [Model](#cosmos-drive-open-source-summary) | [Paper Website](https://research.nvidia.com/labs/toronto-ai/cosmos_drive_dreams)
 This is the official code repository of Cosmos-Drive-Dreams - a Synthetic Data Generation (**SDG**) pipeline built on [Cosmos World Foundation Models](https://www.nvidia.com/en-us/ai/cosmos/) for generating diverse and challenging scenarios for Autonomous Vehicle use-cases. 
 
-We open-source our **model weights**, **pipeline toolkit**, and a **synthetic dataset** (including cosmos-generated videos, paired HDMap and LiDAR), which consists of **81,802** clips.
+We open-source our **model weights**, **pipeline toolkit**, and a **dataset** (including cosmos-generated videos, paired HDMap and LiDAR), which consists of **81,802** clips.
 
 <p align="center">
     <img src="assets/teaser.png" alt="Cosmos-Drive-Dream Teaser">
@@ -27,7 +27,7 @@ Other stages, such as inferring condition video from unlabeled RGB video and LiD
 ## Contents
 
 1. [Cosmos-Drive: Open-source Summary](#cosmos-drive-open-source-summary)
-2. [Introduction to Cosmos-Drive-Dreams Dataset](#cosmos-drive-dreams-synthetic-dataset)
+2. [Introduction to Cosmos-Drive-Dreams Dataset](#cosmos-drive-dreams-dataset)
 3. [Getting Started with Cosmos-Drive-Dreams SDG Pipeline](#cosmos-drive-dreams-sdg-pipeline)
 
 ## Cosmos-Drive Open-source Summary
@@ -41,7 +41,7 @@ Other stages, such as inferring condition video from unlabeled RGB video and LiD
 | **LiDAR-Gen** (Paper Sec. [3])         | model     | Under review |
 | **Cosmos Toolkit**                | SDG tool   | [GitHub - Cosmos Drive Dreams Toolkits](https://github.com/nv-tlabs/Cosmos-Drive-Dreams/tree/main/cosmos-drive-dreams-toolkits) |
 | **RDS-HQ Dataset Subset**        | dataset    | [Huggingface Dataset](https://huggingface.co/datasets/nvidia/PhysicalAI-Autonomous-Vehicle-Cosmos-Drive-Dreams) |
-| **Cosmos Synthetic Dataset**     | dataset    | [Huggingface Dataset](https://huggingface.co/datasets/nvidia/PhysicalAI-Autonomous-Vehicle-Cosmos-Drive-Dreams) |
+| **Cosmos-Drive-Dreams Dataset**     | dataset    | [Huggingface Dataset](https://huggingface.co/datasets/nvidia/PhysicalAI-Autonomous-Vehicle-Cosmos-Drive-Dreams) |
 
 
 ## Cosmos-Drive-Dreams Dataset
@@ -65,7 +65,7 @@ Coming soon
 
 ## Cosmos-Drive-Dreams SDG Pipeline
 We provide a simple walkthrough including all stages of our SDG pipeline through example data available in the assets folder; no additional data download is necessary. 
-For large-scale sampling, please download the Cosmos-Drive-Dreams Synthetic Dataset. 
+For large-scale sampling, please download the above Cosmos-Drive-Dreams Dataset. 
 
 ### 0. Installation and Model Downloading
 We recommend using conda for managing your environment. Detailed instructions for setting up Cosmos-Drive-Dreams can be found in [INSTALL.md](INSTALL.md).
