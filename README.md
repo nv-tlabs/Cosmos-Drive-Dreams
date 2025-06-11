@@ -10,6 +10,8 @@ We open-source our **model weights**, **pipeline toolkits**, and a **dataset** (
     <img src="assets/teaser.png" alt="Cosmos-Drive-Dream Teaser">
 </p>
 
+<video controls autoplay loop src=https://github.com/user-attachments/assets/af926ed2-6f93-4e9d-8afe-95095792e8d8></video>
+
 ## News
 
 - 2025-06-10: Model, Toolkits, and Dataset (including cosmos-generated video, HDMap, and LiDAR) are released! Stay tuned for the paired GT RGB videos. 
@@ -50,6 +52,9 @@ Coming soon
 - Editing structured labels interactively to produce novel scenarios [here](https://github.com/nv-tlabs/Cosmos-Drive-Dreams/tree/main/cosmos-drive-dreams-toolkits#generate-novel-ego-trajectory)
 
 - Converting Waymo Open Dataset to our format [here](https://github.com/nv-tlabs/Cosmos-Drive-Dreams/tree/main/cosmos-drive-dreams-toolkits#convert-public-datasets)
+
+[toolkit_demo_small.webm](https://github.com/user-attachments/assets/41844843-d13c-4b59-96a8-223c8691dc5c)
+
 
 ## Cosmos-Drive-Dreams SDG Pipeline
 We provide a simple walkthrough including all stages of our SDG pipeline through example data available in the assets folder; no additional data download is necessary. 
