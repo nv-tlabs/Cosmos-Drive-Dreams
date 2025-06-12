@@ -39,8 +39,44 @@ Detailed information can be found on the [Huggingface page](https://huggingface.
 
 ### Download
 ```bash
-Coming soon
+usage: scripts/download.py [-h] --odir ODIR
+                                       [--file_types {hdmap,lidar,synthetic}[,…]]
+                                       [--workers N] [--clean_cache]
+
+required arguments:
+  --odir ODIR            Output directory where files are stored.
+
+optional arguments:
+  -h, --help             Show this help message and exit.
+  --file_types {hdmap,lidar,synthetic}[,…]
+                  Comma-separated list of data groups to fetch.
+                  • hdmap     → common folders + 3d_* HD-map layers  
+                  • lidar     → common folders + lidar_raw  
+                  • synthetic → common folders + cosmos_synthetic  
+                  Default: hdmap,lidar,synthetic (all groups).
+  --workers N            Parallel download threads (default: 1).
+                         Increase on fast networks; reduce if you hit
+                         rate limits or disk bottlenecks.
+  --clean_cache          Delete the temporary HuggingFace cache after
+                         each run to reclaim disk space.
+
+common folders (always downloaded, regardless of --file_types):
+  all_object_info, captions, car_mask_coarse, ftheta_intrinsic,
+  pinhole_intrinsic, pose, vehicle_pose
 ```
+
+Here are some examples:
+```
+# download all
+python scripts/download.py --odir YOUR_DATASET_PATH
+
+# download hdmap only
+python scripts/download.py --odir YOUR_DATASET_PATH --file_types hdmap
+
+# download synthetic video only
+python scripts/download.py --odir YOUR_DATASET_PATH --file_types synthetic
+```
+
 
 ### Tutorial
 
