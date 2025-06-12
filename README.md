@@ -67,14 +67,17 @@ common folders (always downloaded, regardless of --file_types):
 
 Here are some examples:
 ```
-# download all
-python scripts/download.py --odir YOUR_DATASET_PATH
+# download all (about 3TB)
+python scripts/download.py --odir YOUR_DATASET_PATH --workers YOUR_WORKER_NUMBER
 
 # download hdmap only
-python scripts/download.py --odir YOUR_DATASET_PATH --file_types hdmap
+python scripts/download.py --odir YOUR_DATASET_PATH --file_types hdmap --workers YOUR_WORKER_NUMBER
 
-# download synthetic video only
-python scripts/download.py --odir YOUR_DATASET_PATH --file_types synthetic
+# download lidar only
+python scripts/download.py --odir YOUR_DATASET_PATH --file_types lidar --workers YOUR_WORKER_NUMBER
+
+# download synthetic video only (about 700GB)
+python scripts/download.py --odir YOUR_DATASET_PATH --file_types synthetic --workers YOUR_WORKER_NUMBER
 ```
 
 
