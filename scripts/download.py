@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-download_cosmos_drive_dreams.py
+download.py
 --------------------------------
 Parallel downloader for
   nvidia/PhysicalAI-Autonomous-Vehicle-Cosmos-Drive-Dreams
@@ -13,8 +13,7 @@ Parallel downloader for
       hdmap     → 3d_crosswalks … 3d_wait_lines
       lidar     → lidar_raw
       synthetic → cosmos_synthetic
-• Uses a ThreadPoolExecutor (default 8 workers) because downloads are I/O-bound.
-• No subset / resolution / hash concept.
+• Uses a ThreadPoolExecutor (default 1 workers) because downloads are I/O-bound.
 """
 
 from __future__ import annotations
