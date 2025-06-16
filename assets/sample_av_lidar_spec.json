@@ -1,0 +1,6 @@
+{
+    "lidar": {
+        "control_weight": 1,
+        "input_control": "placeholder"
+    }
+}

@@ -1,2 +1,3 @@
 outputs/*
 cosmos-transfer1/checkpoints/*
+__pycache__

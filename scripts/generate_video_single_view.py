@@ -203,8 +203,6 @@ def demo(cfg,
     If guardrails block the generation, a critical log message is displayed
     and the function continues to the next prompt if available.
     """
-    control_inputs = validate_controlnet_specs(cfg, control_inputs)
-
     preprocessors = Preprocessors()
     if cfg.batch_input_path:
         log.info(f"Reading batch inputs from path: {cfg.batch_input_path}")
@@ -340,6 +338,8 @@ if __name__ == "__main__":
     checkpoint = BASE_7B_CHECKPOINT_AV_SAMPLE_PATH if cfg.is_av_sample else BASE_7B_CHECKPOINT_PATH
 
     # Initialize transfer generation model pipeline
+    control_inputs = validate_controlnet_specs(cfg, control_inputs)
+    
     pipeline = DiffusionControl2WorldGenerationPipeline(
         checkpoint_dir=cfg.checkpoint_dir,
         checkpoint_name=checkpoint,

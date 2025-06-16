@@ -40,7 +40,7 @@ Cosmos-Transfer1 checkpoints used in Cosmos-Drive-Dreams need to be downloaded m
 huggingface-cli login
 ```
 
-3. Accept the [LlamaGuard-7b terms](https://huggingface.co/meta-llama/LlamaGuard-7b)
+3. Accept the terms of [Llama-Guard-3-8B terms](https://huggingface.co/meta-llama/Llama-Guard-3-8B), [Cosmos-Tokenize1-CV8x8x8-720p](https://huggingface.co/nvidia/Cosmos-Tokenize1-CV8x8x8-720p), [Cosmos-Guardrail1](https://huggingface.co/nvidia/Cosmos-Guardrail1)
 
 4. Download the Cosmos model weights from [Hugging Face](https://huggingface.co/collections/nvidia/cosmos-transfer1-67c9d328196453be6e568d3e):
 

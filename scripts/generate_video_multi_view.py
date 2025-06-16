@@ -271,8 +271,6 @@ def demo(cfg,
     If guardrails block the generation, a critical log message is displayed
     and the function continues to the next prompt if available.
     """
-    control_inputs = validate_controlnet_specs(cfg, control_inputs)
-
     preprocessors = Preprocessors()
 
     current_prompt = [prompt,
@@ -449,6 +447,8 @@ if __name__ == "__main__":
         checkpoint = BASE_t2w_7B_SV2MV_CHECKPOINT_AV_SAMPLE_PATH
 
     # Initialize transfer generation model pipeline
+    control_inputs = validate_controlnet_specs(cfg, control_inputs)
+
     pipeline = DiffusionControl2WorldMultiviewGenerationPipeline(
         checkpoint_dir=cfg.checkpoint_dir,
         checkpoint_name=checkpoint,
