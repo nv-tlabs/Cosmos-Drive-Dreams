@@ -40,8 +40,8 @@ Detailed information can be found on the [Huggingface page](https://huggingface.
 ### Download
 ```bash
 usage: scripts/download.py [-h] --odir ODIR
-                                       [--file_types {hdmap,lidar,synthetic}[,…]]
-                                       [--workers N] [--clean_cache]
+                           [--file_types {hdmap,lidar,synthetic}[,…]]
+                           [--workers N] [--clean_cache]
 
 required arguments:
   --odir ODIR            Output directory where files are stored.
@@ -158,14 +158,14 @@ Coming soon
 ## Citation
 ```bibtex
 @misc{nvidia2025cosmosdrivedreams,
-  title     = {Cosmos-Drive-Dreams: Scalable Synthetic Driving Data Generation with World Foundation Models},
+  title  = {Cosmos-Drive-Dreams: Scalable Synthetic Driving Data Generation with World Foundation Models},
   author = {Ren, Xuanchi and Lu, Yifan and Cao, Tianshi and Gao, Ruiyuan and
-          Huang, Shengyu and Sabour, Amirmojtaba and Shen, Tianchang and
-          Pfaff, Tobias and Wu, Jay Zhangjie and Chen, Runjian and
-          Kim, Seung Wook and Gao, Jun and Leal-Taixe, Laura and
-          Chen, Mike and Fidler, Sanja and Ling, Huan}
-  year      = {2025},
-  url       = {https://arxiv.org/abs/2506.09042}
+            Huang, Shengyu and Sabour, Amirmojtaba and Shen, Tianchang and
+            Pfaff, Tobias and Wu, Jay Zhangjie and Chen, Runjian and
+            Kim, Seung Wook and Gao, Jun and Leal-Taixe, Laura and
+            Chen, Mike and Fidler, Sanja and Ling, Huan},
+  year   = {2025},
+  url    = {https://arxiv.org/abs/2506.09042}
 }
 ```
 
