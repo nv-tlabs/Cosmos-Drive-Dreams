@@ -470,7 +470,6 @@ def main(input_root, novel_pose_folder, dataset, clip_id):
     #### Add static attributes ####
     for label_name in settings['MINIMAP_TYPES']:
         if MINIMAP_TO_TYPE[label_name] in ['polyline', 'polygon']:
-            minimap_type = MINIMAP_TO_TYPE[label_name]
             minimap_wds_file = os.path.join(input_root, f"3d_{label_name}", f"{clip_id}.tar")
 
             # minimap_data_wo_meta_info is a list of vertices for polyline or polygon
@@ -479,11 +478,7 @@ def main(input_root, novel_pose_folder, dataset, clip_id):
             # convert minimap_data_wo_meta_info to line segments
             line_segments = []
             for vertices in minimap_data_wo_meta_info:
-                if minimap_type == 'polyline':
-                    line_segments.extend(list(zip(vertices[:-1], vertices[1:])))
-                elif minimap_type == 'polygon':
-                    vertices = vertices + [vertices[0]]
-                    line_segments.extend(list(zip(vertices[:-1], vertices[1:])))
+                line_segments.extend(list(zip(vertices[:-1], vertices[1:])))
 
             # add minimap_data_wo_meta_info back to static_visualization_config
             label_to_line_segments[label_name] = np.asarray(line_segments)
