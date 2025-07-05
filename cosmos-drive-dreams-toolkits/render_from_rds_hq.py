@@ -425,7 +425,7 @@ def render_sample_rgb(
         # load all frames
         vr = decord.VideoReader(rgb_file)
         num_frames = len(vr)
-        all_frames = [vr[i] for i in range(num_frames)]
+        all_frames = [vr[i] for i in range(num_frames) if i in render_frame_ids]
         # resize all frames to resize_resolution
         all_frames_resized = []
         for frame_read in all_frames:
@@ -433,7 +433,12 @@ def render_sample_rgb(
                 frame = frame_read.asnumpy()
             except AttributeError:
                 frame = frame_read.numpy()
-            frame_resized = cv2.resize(frame, (resize_w, resize_h), interpolation=cv2.INTER_LANCZOS4)
+
+            if frame.shape[0] != resize_h or frame.shape[1] != resize_w:
+                frame_resized = cv2.resize(frame, (resize_w, resize_h), interpolation=cv2.INTER_LANCZOS4)
+            else:
+                frame_resized = frame
+                
             all_frames_resized.append(frame_resized)
         all_frames_resized = np.stack(all_frames_resized, axis=0)
 
