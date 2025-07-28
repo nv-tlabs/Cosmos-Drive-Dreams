@@ -1,0 +1,31 @@
+{
+  "CAMERAS": ["camera_front_wide_120fov", "camera_cross_left_120fov", "camera_cross_right_120fov"],
+  "MINIMAP_TYPES": [
+    "lanelines",
+    "road_boundaries",
+    "crosswalks",
+    "road_markings",
+    "wait_lines",
+    "poles",
+    "traffic_signs",
+    "traffic_lights"
+  ],
+  "INPUT_POSE_FPS": 30,
+  "INPUT_LIDAR_FPS": 10,
+  "COSMOS_RESOLUTION": [1280,704],
+  "NOT_POST_TRAINING": {
+    "RESIZE_RESOLUTION": [1280,720],
+    "TO_COSMOS_RESOLUTION": "resize",
+    "TARGET_CHUNK_FRAME": 121,
+    "OVERLAP_FRAME": 0,
+    "TARGET_RENDER_FPS": 30,
+    "MAX_CHUNK": 1
+  },
+  "POST_TRAINING": {
+    "RESIZE_RESOLUTION": [1280,720],
+    "TO_COSMOS_RESOLUTION": "center-crop",
+    "TARGET_CHUNK_FRAME": 57,
+    "OVERLAP_FRAME": 0,
+    "TARGET_RENDER_FPS": 30
+  }
+}
