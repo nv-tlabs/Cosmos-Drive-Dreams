@@ -88,7 +88,7 @@ def prepare_input(input_root, clip_id, settings, camera_type, post_training, res
         pose_data_this_cam = {k: v for k, v in pose_data.items() if camera_key in k}
         pose_all_frames = np.stack([pose_data_this_cam[k] for k in sorted(pose_data_this_cam.keys())])
 
-        frame_num = pose_all_frames.shape[0]
+        frame_num = pose_all_frames.shape[0] # measured in INPUT_POSE_FPS, usually 30
         render_frame_ids = list(range(0, frame_num, INPUT_POSE_FPS // TARGET_RENDER_FPS))
 
         if MAX_CHUNK > 0:
@@ -419,32 +419,17 @@ def render_sample_rgb(
         prepare_input(input_root, clip_id, settings, camera_type, post_training, resize_resolution, novel_pose_folder)
 
     for camera_name, camera_model in camera_name_to_camera_model.items():
+        frame_idx_in_gt_video = [i // (settings['INPUT_POSE_FPS'] // settings['GT_VIDEO_FPS']) for i in render_frame_ids]
         pose_all_frames = camera_name_to_camera_poses[camera_name]
         # load rgb
         rgb_file = os.path.join(input_root, f'{camera_type}_{camera_name}', f"{clip_id}.mp4")
         # load all frames
         vr = decord.VideoReader(rgb_file)
-        num_frames = len(vr)
-        all_frames = [vr[i] for i in range(num_frames) if i in render_frame_ids]
-        # resize all frames to resize_resolution
-        all_frames_resized = []
-        for frame_read in all_frames:
-            try:
-                frame = frame_read.asnumpy()
-            except AttributeError:
-                frame = frame_read.numpy()
-
-            if frame.shape[0] != resize_h or frame.shape[1] != resize_w:
-                frame_resized = cv2.resize(frame, (resize_w, resize_h), interpolation=cv2.INTER_LANCZOS4)
-            else:
-                frame_resized = frame
-                
-            all_frames_resized.append(frame_resized)
-        all_frames_resized = np.stack(all_frames_resized, axis=0)
-
+        all_frames = vr.get_batch(frame_idx_in_gt_video).asnumpy()
+        
         prepare_output(
-            all_frames_resized,
-            render_frame_ids,
+            all_frames,
+            frame_idx_in_gt_video,
             'videos',
             settings,
             output_root,

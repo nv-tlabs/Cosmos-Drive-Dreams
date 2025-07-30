@@ -14,20 +14,21 @@
     },
     "INPUT_POSE_FPS": 30,
     "INPUT_LIDAR_FPS": 10,
+    "GT_VIDEO_FPS": 10,
     "COSMOS_RESOLUTION": [1280,704],
     "NOT_POST_TRAINING": {
         "RESIZE_RESOLUTION": [1280,704],
         "TO_COSMOS_RESOLUTION": "resize",
         "TARGET_CHUNK_FRAME": 121,
         "OVERLAP_FRAME": 0,
-        "TARGET_RENDER_FPS": 30,
-        "MAX_CHUNK": 1
+        "TARGET_RENDER_FPS": 30
     },
     "POST_TRAINING": {
         "RESIZE_RESOLUTION": [1280,704],
         "TO_COSMOS_RESOLUTION": "resize",
         "TARGET_CHUNK_FRAME": 190,
         "OVERLAP_FRAME": 0,
-        "TARGET_RENDER_FPS": 10
+        "TARGET_RENDER_FPS": 10,
+        "MAX_CHUNK": 1
     }
 }
