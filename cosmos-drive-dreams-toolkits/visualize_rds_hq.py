@@ -541,6 +541,57 @@ def main(input_root, novel_pose_folder, dataset, clip_id):
             ego_car_position + ego_car_forward_dir * 1,
         ], axis=0).reshape(1, 2, 3)
 
+    #### Set initial camera view based on ego car's first position ####
+    def set_initial_camera_view():
+        """Set initial camera view to look at the ego car's first position"""
+        # Use ego car's first position (frame 0)
+        if 0 in frame_idx_to_ego_car_line_segments:
+            ego_car_first_position = camera_poses[f'000000.pose.{all_cameras[0]}.npy'][:3, 3]
+            ego_car_first_forward_dir = camera_poses[f'000000.pose.{all_cameras[0]}.npy'][:3, 2]
+            
+            # Set camera position above and behind the ego car's first position
+            camera_position = ego_car_first_position + np.array([0, 0, 15]) - ego_car_first_forward_dir * 10
+            look_at_point = ego_car_first_position
+            
+            # Set up direction (z-axis up)
+            up_direction = np.array([0, 0, 1])
+            
+            print(f"Setting initial camera view based on ego car first position:")
+            print(f"  Ego car position: {ego_car_first_position}")
+            print(f"  Camera position: {camera_position}")
+            print(f"  Look at point: {look_at_point}")
+            
+            # Apply to all current clients
+            for client_id, client in server.get_clients().items():
+                client.camera.position = camera_position
+                client.camera.look_at = look_at_point
+                client.camera.up_direction = up_direction
+                client.camera.fov = np.pi / 3  # 60 degrees
+        else:
+            print("No ego car position found, using default camera view")
+
+    # Set initial view for existing clients
+    set_initial_camera_view()
+    
+    # Set initial view for new clients that connect later
+    @server.on_client_connect
+    def on_new_client_connect(client: viser.ClientHandle):
+        # Use ego car's first position for new clients
+        if 0 in frame_idx_to_ego_car_line_segments:
+            ego_car_first_position = camera_poses[f'000000.pose.{all_cameras[0]}.npy'][:3, 3]
+            ego_car_first_forward_dir = camera_poses[f'000000.pose.{all_cameras[0]}.npy'][:3, 2]
+            
+            camera_position = ego_car_first_position + np.array([0, 0, 15]) - ego_car_first_forward_dir * 10
+            look_at_point = ego_car_first_position
+            up_direction = np.array([0, 0, 1])
+            
+            # Small delay to ensure client is ready
+            time.sleep(0.1)
+            client.camera.position = camera_position
+            client.camera.look_at = look_at_point
+            client.camera.up_direction = up_direction
+            client.camera.fov = np.pi / 3
+
     """
     while-true loop for visualization
     """
