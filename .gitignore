@@ -1,3 +1,4 @@
 outputs/*
 cosmos-transfer1/checkpoints/*
+cosmos-lidar-preprocessing-release/
 __pycache__

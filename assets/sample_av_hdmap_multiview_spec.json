@@ -1,14 +1,3 @@
-{
-    "hdmap": {
-        "control_weight": 1,
-        "input_control": [
-            "assets/sample_av_mv_input_hdmap_front.mp4",
-            "assets/sample_av_mv_input_hdmap_front_left.mp4",
-            "assets/sample_av_mv_input_hdmap_front_right.mp4",
-            "assets/sample_av_mv_input_hdmap_rear.mp4",
-            "assets/sample_av_mv_input_hdmap_rear_left.mp4",
-            "assets/sample_av_mv_input_hdmap_rear_right.mp4"
-        ],
-        "ckpt_path": "nvidia/Cosmos-Transfer1-7B-Sample-AV-Single2MultiView/t2w_hdmap_control.pt"
-    }
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:a29364a74cdc8eeb006acccdc06840ff254359ff9c6733ac6fa1f6d16da41cc3
+size 550
