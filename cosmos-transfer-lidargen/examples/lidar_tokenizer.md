@@ -43,22 +43,19 @@ The results demonstrate significant improvements in reconstruction accuracy afte
    ```bash
    huggingface-cli login
    ```
-3. Accept the [Llama-Guard-3-8B terms](https://huggingface.co/meta-llama/Llama-Guard-3-8B)
-
-4. Download the Cosmos model weights from [Hugging Face](https://huggingface.co/collections/nvidia/cosmos-predict1-67c9d1b97678dbf7669c89a7):
-   ```bash
-   CUDA_HOME=$CONDA_PREFIX PYTHONPATH=$(pwd) python3 -m scripts.download_tokenizer_checkpoints --tokenizer_types CI8x8-360p --checkpoint_dir checkpoints
-   ```
+3. Download the checkpoints
+    ```
+    from huggingface_hub import snapshot_download
+    snapshot_download(repo_id="nvidia/Cosmos-Tokenizer-CI8x8-Lidar",local_dir="checkpoints/Cosmos-Tokenizer-CI8x8-Lidar")
+    ```
 
 The downloaded files should be in the following structure:
 ```
 checkpoints/
-├── Cosmos-Tokenize1-CI8x8-360p
-│   ├── config.json
+├── Cosmos-Tokenizer-CI8x8-Lidar
 │   ├── encoder.jit
 │   ├── decoder.jit
-│   ├── autoencoder.jit
-│   └── model.pt
+│   └── mean_std.pt
 ```
 
 ## Post-training Lidar Tokenizers
@@ -118,8 +115,8 @@ The lidar tokenizer can encode and decode point cloud data, providing reconstruc
 sample_path=datasets/lidar_dataset_release/lidar/14d2ed36-1afa-11ed-88ea-00044bf65d5c_1660389768178294_1660389788178294.tar
 python -m cosmos_predict1.tokenizer.inference.lidar_cli \
     --sample_path=$sample_path \
-    --enc_path=checkpoints/posttraining/tokenizer/Cosmos-Tokenize1-CI8x8-360p-LIDAR/checkpoints/iter_000100000_enc.jit \
-    --dec_path=checkpoints/posttraining/tokenizer/Cosmos-Tokenize1-CI8x8-360p-LIDAR/checkpoints/iter_000100000_dec.jit \
+    --enc_path=checkpoints/Cosmos-Tokenizer-CI8x8-Lidar/encoder.jit \
+    --dec_path=checkpoints/Cosmos-Tokenizer-CI8x8-Lidar/decoder.jit \
     --output_folder=dump_results/reconstructions \
     --tokenizer_dtype=float32 \
     --vis_pcd=1

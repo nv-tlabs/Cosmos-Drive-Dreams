@@ -27,13 +27,10 @@ We support the following Cosmos-Transfer-LidarGen models for post-training and i
    huggingface-cli login
    ```
 
-3. Download the required base model checkpoints and tokenizer weights from [Hugging Face](https://huggingface.co/collections/nvidia/cosmos-predict1-67c9d1b97678dbf7669c89a7):
+3. Download the model checkpoints from [Hugging Face](https://huggingface.co/nvidia/Cosmos-Transfer-LidarGen):
    ```bash
-   # Download tokenizer checkpoints
-   CUDA_HOME=$CONDA_PREFIX PYTHONPATH=$(pwd) python3 -m scripts.download_tokenizer_checkpoints --tokenizer_types CI8x8-360p --checkpoint_dir checkpoints
-   
-   # Download diffusion model checkpoints
-   CUDA_HOME=$CONDA_PREFIX PYTHONPATH=$(pwd) python scripts/download_diffusion_checkpoints.py --model_sizes 7B --checkpoint_dir checkpoints
+   from huggingface_hub import snapshot_download
+    snapshot_download(repo_id="nvidia/Cosmos-Transfer-LidarGen",local_dir="checkpoints/Cosmos-Transfer-LidarGen")
    ```
 
 ## Post-training Cosmos-Transfer-LidarGen Models
@@ -114,7 +111,7 @@ The Cosmos-Transfer-LidarGen model can generate LiDAR range maps from multi-view
 # Basic inference with ImageToLidar model
 n_gpus=1
 experiment=text2world_imagetolidar
-ckpt_path=checkpoints/ImageToLidar/model.pt
+ckpt_path=checkpoints/osmos-Transfer-LidarGen/model.pt
 
 torchrun --master_port=29502 --nproc_per_node=$n_gpus cosmos_predict1/diffusion/inference/imagetolidar_cli.py \
     --save_dir dump_results/test_image2lidar_inference \
