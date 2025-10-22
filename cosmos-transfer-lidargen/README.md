@@ -31,6 +31,19 @@ plotly_get_chrome
 pip install jaxtyping kaleido pyquaternion av lru-dict OpenEXR==3.2.3 plotly open3d
 ```
 
+### Download sample datasets
+1. Generate a [Hugging Face](https://huggingface.co/settings/tokens) access token (if you haven't done so already). Set the access token to `Read` permission (default is `Fine-grained`).
+
+2. Log in to Hugging Face with the access token:
+   ```bash
+   huggingface-cli login
+   ```
+3. Download the sample dataset
+    ```
+    from huggingface_hub import snapshot_download
+    snapshot_download(repo_id="nvidia/Cosmos-Transfer-LidarGen-Example",local_dir="datasets",repo_type="dataset")
+    ```
+
 ## LiDAR Tokenizer
 
 The LiDAR tokenizer enables efficient encoding and decoding of LiDAR point cloud data using continuous latent space representations.
