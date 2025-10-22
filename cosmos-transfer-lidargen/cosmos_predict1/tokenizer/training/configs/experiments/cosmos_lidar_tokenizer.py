@@ -34,7 +34,7 @@ Cosmos_LidarTokenizer_CI8x8: LazyDict = LazyDict(
             name="Cosmos-LidarTokenizer-CI8x8",
         ),
         checkpoint=dict(
-            load_path="checkpoints/Cosmos-0.1-Tokenizer-CI8x8/autoencoder.pt",
+            load_path="checkpoints/Cosmos-Tokenizer-CI8x8-Lidar/Cosmos-0.1-Tokenizer-CI8x8/autoencoder.pt",
             load_training_state=False,
             save_iter=2000, 
             strict_resume=False,

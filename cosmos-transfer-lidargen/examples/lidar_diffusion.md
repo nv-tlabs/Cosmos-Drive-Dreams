@@ -27,10 +27,11 @@ We support the following Cosmos-Transfer-LidarGen models for post-training and i
    huggingface-cli login
    ```
 
-3. Download the model checkpoints from [Hugging Face](https://huggingface.co/nvidia/Cosmos-Transfer-LidarGen):
+3. Download the [model](https://huggingface.co/nvidia/Cosmos-Transfer-LidarGen) and [tokenizer](https://huggingface.co/nvidia/Cosmos-Tokenizer-CI8x8-Lidar) checkpoints:
    ```bash
    from huggingface_hub import snapshot_download
     snapshot_download(repo_id="nvidia/Cosmos-Transfer-LidarGen",local_dir="checkpoints/Cosmos-Transfer-LidarGen")
+    snapshot_download(repo_id="nvidia/Cosmos-Tokenizer-CI8x8-Lidar",local_dir="checkpoints/Cosmos-Tokenizer-CI8x8-Lidar")
    ```
 
 ## Post-training Cosmos-Transfer-LidarGen Models
@@ -69,16 +70,6 @@ The Cosmos-Transfer-LidarGen diffusion model uses a custom experiment configurat
 
 Run the following command to execute a post-training job for the Cosmos-Transfer-LidarGen model:
 
-```bash
-export OUTPUT_ROOT=checkpoints # default value
-torchrun --nproc_per_node=1 --nnodes=1 --rdzv_id 123 --rdzv_backend c10d --rdzv_endpoint $MASTER_ADDR:1234 \
-    -m cosmos_predict1.diffusion.training.train \
-    --config=cosmos_predict1/diffusion/training/config/config_lidar.py \
-    -- experiment=text2world_imagetolidar \
-    checkpoint.load_path=""
-```
-
-For multi-GPU training:
 ```bash
 N_GPUS=8
 torchrun --nproc_per_node=$N_GPUS --nnodes=1 --rdzv_id 123 --rdzv_backend c10d --rdzv_endpoint $MASTER_ADDR:1234 \

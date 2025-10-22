@@ -249,3 +249,5 @@ onelogger.log
 
 pyTorchChamferDistance
 assets/model_cards
+dump_results/
+run.sh
