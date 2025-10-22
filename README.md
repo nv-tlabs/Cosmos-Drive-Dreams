@@ -13,7 +13,7 @@ We open-source our **model weights**, **pipeline toolkits**, and a **dataset** (
 <video controls autoplay loop src=https://github.com/user-attachments/assets/af926ed2-6f93-4e9d-8afe-95095792e8d8></video>
 
 ## News
-
+- 2025-10-22: [Data preprocessing](cosmos-drive-dreams-toolkits/convert_lidar_pointcloud_to_rangemap.py), post-training and inference scripts of tokenizer and diffuison [models](cosmos-transfer-lidargen/README.md) are released ! See [Huggingface](https://huggingface.co/collections/nvidia/cosmos-drive-dreams-68f5ea17febabd25282767fd) for our model cards. 
 - 2025-06-10: Model, Toolkits, and Dataset (including cosmos-generated video, HDMap, and LiDAR) are released! Stay tuned for the paired GT RGB videos. 
 
 
