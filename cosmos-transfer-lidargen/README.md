@@ -8,7 +8,7 @@
 **Cosmos-Transfer-LidarGen** leverages [Cosmos-Predict1](https://github.com/nvidia-cosmos/cosmos-predict1) as the runtime engine to provide specialized models for LiDAR generation tasks. This repository includes:
 
 - **LiDAR Tokenizer**: Continuous latent space tokenizer for encoding and decoding LiDAR point cloud data with 8x8 spatial compression
-- **ImageToLidar Diffusion Model**: Multi-view RGB image to LiDAR range map generation using diffusion-based architecture
+- **Cosmos-Transfer-LidarGen Diffusion Model**: Multi-view RGB image to LiDAR range map generation using diffusion-based architecture
 - **Post-training Scripts**: Tools for fine-tuning models on custom LiDAR datasets with multi-gpu support
 - **Inference Scripts**: Easy-to-use interfaces for generating LiDAR data from trained models
 
@@ -67,10 +67,10 @@ We run inference on 200 samples and compute the chamfer distance between the gen
 - **Input**: Multi-view RGB images (3 views: front, rear left, rear right)
 - **Output**: LiDAR range maps
 
-### Post-training ImageToLidar Model
-* [Post-train ImageToLidar model using custom multi-view datasets](examples/lidar_diffusion.md) **[with multi-node support]**
+### Post-training Cosmos-Transfer-LidarGen Model
+* [Post-train Cosmos-Transfer-LidarGen model using custom multi-view datasets](examples/lidar_diffusion.md) **[with multi-node support]**
 
-### Inference with ImageToLidar Model
+### Inference with Cosmos-Transfer-LidarGen Model
 * [Generate LiDAR from RGB images](examples/lidar_diffusion.md) **[with multi-GPU support]**
 
 ## Visualization Examples
