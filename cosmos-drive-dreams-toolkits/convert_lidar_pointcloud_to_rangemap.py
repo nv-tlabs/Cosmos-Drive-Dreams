@@ -7,7 +7,7 @@
 # CORPORATION & AFFILIATES is strictly prohibited.
 
 """
-python convert_rds_hq_lidar.py
+python convert_lidar_pointcloud_to_rangemap.py
 """
 
 

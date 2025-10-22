@@ -5,7 +5,7 @@ This sub-repo provides toolkits for:
 
 * A conversion script that converts open-source datasets (e.g., Waymo Open Dataset) into RDS-HQ format, so you can reuse the rendering script to render the input videos.
 
-* A conversion [script](convert_lidar_pointcloud_to_rangemap.py) that converts raw lidar data into range map format. Note that this only serves as a reference script for nvidia lidar data, you will need to modify for your own use case. 
+* A conversion [script](convert_lidar_pointcloud_to_rangemap.py) that converts raw lidar data into range map format using Nvidia Ncore libray. Note that this only serves as a reference script for nvidia lidar data, you will need to modify for your own use case. 
 
 * An interactive visualization tool to visualize the RDS-HQ dataset and generate novel ego trajectories.
 
