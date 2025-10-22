@@ -1,8 +1,8 @@
-## Post-training and Inference with Diffusion-based ImageToLidar Models
+## Post-training and Inference with Cosmos-Transfer-LidarGen Models
 
 ### Model Overview
 
-The Cosmos-Predict1 ImageToLidar diffusion model enables 3-view RGB image to LiDAR point cloud generation. This model takes multi-view RGB images as input and generates corresponding LiDAR range maps, bridging the gap between visual perception and 3D spatial understanding.
+The Cosmos-Transfer-LidarGen diffusion model enables 3-view RGB image to LiDAR point cloud generation. This model takes multi-view RGB images as input and generates corresponding LiDAR range maps, bridging the gap between visual perception and 3D spatial understanding.
 
 ### Environment setup
 
@@ -10,11 +10,11 @@ Please refer to [lidar_tokenizer.md](lidar_tokenizer.md) for instructions on env
 
 ### Model Support Matrix
 
-We support the following Cosmos ImageToLidar models for post-training and inference:
+We support the following Cosmos-Transfer-LidarGen models for post-training and inference:
 
 | Model Name                                | Model Status   | Compute Requirements for Post-Training |
 |-------------------------------------------|----------------|----------------------------------------|
-| Cosmos-Predict1-ImageToLidar             | **Supported**  | 1+ NVIDIA GPUs*                       |
+| Cosmos-Transfer-LidarGen             | **Supported**  | 1+ NVIDIA GPUs*                       |
 
 **\*** `H100-80GB` or `A100-80GB` GPUs are recommended.
 
@@ -36,9 +36,9 @@ We support the following Cosmos ImageToLidar models for post-training and infere
    CUDA_HOME=$CONDA_PREFIX PYTHONPATH=$(pwd) python scripts/download_diffusion_checkpoints.py --model_sizes 7B --checkpoint_dir checkpoints
    ```
 
-## Post-training ImageToLidar Models
+## Post-training Cosmos-Transfer-LidarGen Models
 
-Post-training a Cosmos ImageToLidar model allows you to fine-tune the model for your specific multi-view RGB to LiDAR generation use cases.
+Post-training a Cosmos-Transfer-LidarGen model allows you to fine-tune the model for your specific multi-view RGB to LiDAR generation use cases.
 
 ### Dataset Preparation
 
@@ -65,12 +65,12 @@ datasets/lidar_dataset_release/
 
 ### Post-training Configuration
 
-The ImageToLidar diffusion model uses a custom experiment configuration. See the config [text2world_imagetolidar](../cosmos_predict1/diffusion/training/config/text2world_imagetolidar/experiment.py) defined in the training configuration files to understand how the dataloader and model are configured.
+The Cosmos-Transfer-LidarGen diffusion model uses a custom experiment configuration. See the config [text2world_imagetolidar](../cosmos_predict1/diffusion/training/config/text2world_imagetolidar/experiment.py) defined in the training configuration files to understand how the dataloader and model are configured.
 
 
 ### Post-training Command
 
-Run the following command to execute a post-training job for the ImageToLidar model:
+Run the following command to execute a post-training job for the Cosmos-Transfer-LidarGen model:
 
 ```bash
 export OUTPUT_ROOT=checkpoints # default value
@@ -101,14 +101,14 @@ checkpoints/posttraining/diffusion_text2world/text2world_imagetolidar/checkpoint
 ├── iter_{NUMBER}_ema_model.pt
 ```
 
-## Inference with ImageToLidar Models
+## Inference with Cosmos-Transfer-LidarGen Models
 
 ### Command Line Arguments
 Please see [inference helper](../cosmos_predict1/diffusion/inference/imagetolidar_cli.py) to understand different arguments.
 
 ### RGB to LiDAR Generation
 
-The ImageToLidar model can generate LiDAR range maps from multi-view RGB images.
+The Cosmos-Transfer-LidarGen model can generate LiDAR range maps from multi-view RGB images.
 
 ```bash
 # Basic inference with ImageToLidar model
@@ -156,7 +156,7 @@ The first row displays the overlaid input views and the generated LiDAR point cl
 
 ## Model Architecture
 
-The ImageToLidar diffusion model is built on the following architecture:
+The Cosmos-Transfer-LidarGen diffusion model is built on the following architecture:
 
 - **Base Model**: similar to Single2Multiview model
 - **Input**: Multi-view RGB images (3 views: front, left, right)

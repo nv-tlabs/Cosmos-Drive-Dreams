@@ -2,10 +2,10 @@
     <img src="assets/nvidia-cosmos-header.png" alt="NVIDIA Cosmos Header">
 </p>
 
-<h1 align="center">Cosmos-LidarGen</h1>
+<h1 align="center">Cosmos-Transfer-LidarGEN</h1>
 
 
-**Cosmos-LidarGen** leverages [Cosmos-Predict1](https://github.com/nvidia-cosmos/cosmos-predict1) as the runtime engine to provide specialized models for LiDAR generation tasks. This repository includes:
+**Cosmos-Transfer-LidarGEN** leverages [Cosmos-Predict1](https://github.com/nvidia-cosmos/cosmos-predict1) as the runtime engine to provide specialized models for LiDAR generation tasks. This repository includes:
 
 - **LiDAR Tokenizer**: Continuous latent space tokenizer for encoding and decoding LiDAR point cloud data with 8x8 spatial compression
 - **ImageToLidar Diffusion Model**: Multi-view RGB image to LiDAR range map generation using diffusion-based architecture
@@ -15,7 +15,7 @@
 
 ## Getting Started
 
-We provide comprehensive examples to illustrate how to perform inference and post-training with Cosmos-LidarGen models.
+We provide comprehensive examples to illustrate how to perform inference and post-training with Cosmos-Transfer-LidarGEN models.
 
 ### Installation
 
@@ -39,17 +39,17 @@ The LiDAR tokenizer enables efficient encoding and decoding of LiDAR point cloud
 | Model Name                          | RMSE (m)  | MAE (m)   | Relative Error |
 |-------------------------------------|-----------|-----------|----------------|
 | Cosmos-Tokenize1-CI8x8-360p (Image) | 1.302     | 0.450     | 0.022          |
-| Cosmos-Tokenize-Lidar8x8 | 0.289     | 0.218     | 0.011          |
+| Cosmos-Tokenizer-CI8x8-Lidar | 0.289     | 0.218     | 0.011          |
 
 Fine-tuning on LiDAR range map data achieves significant improvements in reconstruction accuracy.
 
 ### Post-training LiDAR Tokenizer
-* [Post-train tokenizer using custom LiDAR datasets](/examples/lidar_tokenizer.md#post-training-lidar-tokenizers) **[with multi-GPU support]**
+* [Post-train tokenizer using custom LiDAR datasets](examples/lidar_tokenizer.md) **[with multi-GPU support]**
 
 ### Inference with LiDAR Tokenizer
-* [Autoencoding LiDAR point clouds](/examples/lidar_tokenizer.md#inference-with-lidar-tokenizer-models)
+* [Autoencoding LiDAR point clouds](examples/lidar_tokenizer.md)
 
-## Cosmos-Lidargen Diffusion Model
+## Cosmos-Transfer-LidarGEN Diffusion Model
 
 The RGB-conditioned LiDAR generation model generates LiDAR range maps from multi-view RGB images, enabling 3D spatial understanding for 2D visual data.
 
@@ -68,10 +68,10 @@ We run inference on 200 samples and compute the chamfer distance between the gen
 - **Output**: LiDAR range maps
 
 ### Post-training ImageToLidar Model
-* [Post-train ImageToLidar model using custom multi-view datasets](/examples/lidar_diffusion.md#post-training-imagetolidar-models) **[with multi-node support]**
+* [Post-train ImageToLidar model using custom multi-view datasets](examples/lidar_diffusion.md) **[with multi-node support]**
 
 ### Inference with ImageToLidar Model
-* [Generate LiDAR from RGB images](/examples/lidar_diffusion.md#inference-with-imagetolidar-models) **[with multi-GPU support]**
+* [Generate LiDAR from RGB images](examples/lidar_diffusion.md) **[with multi-GPU support]**
 
 ## Visualization Examples
 
@@ -85,7 +85,7 @@ We run inference on 200 samples and compute the chamfer distance between the gen
 
 <img src="assets/lidar/pointcloud_view.jpg" alt="Pointcloud" style="max-width: 800px;">
 
-### Cosmos-Lidargen Output
+### Cosmos-Transfer-LidarGEN Output
 
 **Multi-View RGB to LiDAR Generation**
 

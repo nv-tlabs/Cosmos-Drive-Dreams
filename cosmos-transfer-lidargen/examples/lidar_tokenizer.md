@@ -21,7 +21,7 @@ Currently, we support continuous latent space tokenizers for lidar data.
 
 | Model Name                               | Model Status | Compute Requirements for Post-Training |
 |----------------------------------------------|------------------|------------------------------------------|
-| Cosmos-Tokenize1-CI8x8-360p (Lidar)      | **Supported**    | NVIDIA GPUs*                           |
+| Cosmos-Tokenizer-CI8x8-Lidar      | **Supported**    | NVIDIA GPUs*                           |
 
 **\*** `H100-80GB` or `A100-80GB` GPUs are recommended.
 
@@ -30,7 +30,7 @@ We conducted evaluation of the fine-tuned lidar tokenizer on 100 randomly sample
 | Model Name                          | RMSE (m)  | MAE (m)   | Relative Error |
 |-------------------------------------|-----------|-----------|----------------|
 | Cosmos-Tokenize1-CI8x8-360p (Image) | 1.302     | 0.450     | 0.022          |
-| Cosmos-Tokenize1-CI8x8-360p (Lidar) | 0.289     | 0.218     | 0.011          |
+| Cosmos-Tokenizer-CI8x8-Lidar | 0.289     | 0.218     | 0.011          |
 
 The results demonstrate significant improvements in reconstruction accuracy after fine-tuning on lidar range map data. 
 
