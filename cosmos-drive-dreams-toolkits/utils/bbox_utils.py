@@ -11,6 +11,8 @@ from tqdm import tqdm
 import json
 from pathlib import Path
 from utils.minimap_utils import cuboid3d_to_polyline
+from utils.graphics_utils import EDGE_INDICES, FRONT_FACE_INDICES, BACK_FACE_INDICES, ALL_FACE_INDICES, get_remaining_face_indices
+from utils.graphics_utils import TriangleList2D, TriangleList2DPerVertex, LineSegment2D, LineSegment2DPerVertex
 from scipy.spatial.transform import Rotation as R
 from scipy.spatial.transform import Slerp
 from pycg import Isometry
@@ -389,6 +391,95 @@ def object_tfm_to_heading(tfm):
     heading_vector = heading_vector / np.linalg.norm(heading_vector)
     return heading_vector
 
+def bbox_face_indices(fill_face: str, fill_face_style: str):
+    if fill_face == 'front' and fill_face_style == 'solid':
+        solid_face_indices = FRONT_FACE_INDICES
+        black_face_indices = get_remaining_face_indices(ALL_FACE_INDICES, FRONT_FACE_INDICES)
+    elif fill_face == 'back' and fill_face_style == 'solid':
+        solid_face_indices = BACK_FACE_INDICES
+        black_face_indices = get_remaining_face_indices(ALL_FACE_INDICES, BACK_FACE_INDICES)
+    elif fill_face == 'front_and_back' and fill_face_style == 'solid':
+        solid_face_indices = FRONT_FACE_INDICES + BACK_FACE_INDICES
+        black_face_indices = get_remaining_face_indices(ALL_FACE_INDICES, solid_face_indices)
+    elif fill_face == 'all' and fill_face_style == 'solid':
+        solid_face_indices = ALL_FACE_INDICES
+        black_face_indices = None
+    elif fill_face == 'none' and fill_face_style == 'solid':
+        solid_face_indices = None
+        black_face_indices = ALL_FACE_INDICES
+    elif fill_face_style == 'diagonal':
+        solid_face_indices = None
+        black_face_indices = ALL_FACE_INDICES
+    else:
+        raise ValueError(f"Invalid fill_face_style x fill_face combination: {fill_face_style} x {fill_face}")
+    return solid_face_indices, black_face_indices
+
+def lerp(a: np.ndarray, b: np.ndarray, t: float) -> np.ndarray:
+    return a + t * (b - a)
+
+def clip_polygon_to_z_near(pts: list[np.ndarray], cols: list[np.ndarray], z_near: float):
+    """
+    Sutherland–Hodgman clip for half-space z >= z_near.
+    pts: list of (3,), cols: list of (3,)
+    returns clipped (pts, cols) lists.
+    """
+    def inside(p): return float(p[2]) >= z_near
+
+    out_pts, out_cols = [], []
+    n = len(pts)
+    if n == 0:
+        return out_pts, out_cols
+
+    for i in range(n):
+        p1, c1 = pts[i], cols[i]
+        p2, c2 = pts[(i + 1) % n], cols[(i + 1) % n]
+        i1, i2 = inside(p1), inside(p2)
+
+        if i1 and i2:
+            out_pts.append(p2); out_cols.append(c2)
+        elif i1 and (not i2):
+            # leaving => add intersection
+            denom = float(p2[2] - p1[2])
+            if abs(denom) > 1e-9:
+                t = float((z_near - p1[2]) / denom)
+                pi = lerp(p1, p2, t)
+                ci = lerp(c1, c2, t)
+                out_pts.append(pi); out_cols.append(ci)
+        elif (not i1) and i2:
+            # entering => add intersection + p2
+            denom = float(p2[2] - p1[2])
+            if abs(denom) > 1e-9:
+                t = float((z_near - p1[2]) / denom)
+                pi = lerp(p1, p2, t)
+                ci = lerp(c1, c2, t)
+                out_pts.append(pi); out_cols.append(ci)
+            out_pts.append(p2); out_cols.append(c2)
+        else:
+            # both outside => nothing
+            pass
+
+    return out_pts, out_cols
+
+def triangulate_fan(pts: list[np.ndarray], cols: list[np.ndarray]):
+    """
+    Fan triangulation for convex polygon.
+    returns list of (tri_pts(3,3), tri_cols(3,3))
+    """
+    if len(pts) < 3:
+        return []
+    tris = []
+    p0, c0 = pts[0], cols[0]
+    for i in range(1, len(pts) - 1):
+        tri_p = np.stack([p0, pts[i], pts[i + 1]], axis=0)
+        tri_c = np.stack([c0, cols[i], cols[i + 1]], axis=0)
+        tris.append((tri_p, tri_c))
+    return tris
+
+def clip_triangle_to_z_near(tri_pts: np.ndarray, tri_cols: np.ndarray, z_near: float):
+    pts = [tri_pts[0], tri_pts[1], tri_pts[2]]
+    cols = [tri_cols[0], tri_cols[1], tri_cols[2]]
+    pts2, cols2 = clip_polygon_to_z_near(pts, cols, z_near=z_near)
+    return triangulate_fan(pts2, cols2)
 
 
 def create_bbox_geometry_objects_for_frame(
@@ -415,7 +506,9 @@ def create_bbox_geometry_objects_for_frame(
         edge_color: np.ndarray, shape (3,), dtype=np.float32, optional edge color
 
     Returns:
-        list[BoundingBox2D], geometry objects for the current frame
+        list[Geometry2D]: geometry objects for the current frame.
+        The list may contain BoundingBox2D, TriangleList2D, TriangleList2DPerVertex,
+        LineSegment2D, LineSegment2DPerVertex, depending on the visibility and clipping of each bbox.    
     """
     # Prepare per-vertex colors if not supplied
     if edge_color is not None:
@@ -448,43 +541,146 @@ def create_bbox_geometry_objects_for_frame(
         else:
             object_type_to_corner_vertices['Others'].append(cuboid_eight_vertices)
 
+    solid_face_indices, black_face_indices = bbox_face_indices(fill_face, fill_face_style)
+    z_near = 5e-2
+    world_to_camera = np.linalg.inv(current_camera_pose).astype(np.float32)
+
     # draw the bbox projection. xy are pixel coordinate, depth is in meters.
     geometry_objects = []
     for object_type, all_corner_vertices in object_type_to_corner_vertices.items():
         if len(all_corner_vertices) == 0:
             continue
 
-        # all_corner_vertices is [n, 8, 3]
-        n_objects = len(all_corner_vertices)
-        all_corner_vertices_flatten = np.array(all_corner_vertices).reshape(-1, 3)
-        all_points_in_cam = camera_model.transform_points(
-            all_corner_vertices_flatten, np.linalg.inv(current_camera_pose)
-        )
-        all_depth = all_points_in_cam[:, 2:3] # (n * 8, 1)
-        all_xy = camera_model.ray2pixel(all_points_in_cam) # (n * 8, 2)
-        all_xy_and_depth = np.hstack([all_xy, all_depth]).reshape(n_objects, 8, 3) # (n, 8, 3)
+        per_corner_color = object_type_to_per_vertex_color[object_type].astype(np.float32)
 
-        # valid corner: (1) 0 <= x <= width, (2) 0 <= y <= height, (3) depth > 0
-        valid_x_mask = (all_xy_and_depth[:, :, 0] >= 0) & (all_xy_and_depth[:, :, 0] < camera_model.width)
-        valid_y_mask = (all_xy_and_depth[:, :, 1] >= 0) & (all_xy_and_depth[:, :, 1] < camera_model.height)
-        valid_depth_mask = (all_xy_and_depth[:, :, 2] > 0)
-        not_valid_vertex_mask = ~valid_x_mask | ~valid_y_mask | ~valid_depth_mask
-        not_valid_object_mask = np.all(not_valid_vertex_mask, axis=1)
-        valid_object_mask = ~not_valid_object_mask
 
-        all_xy_and_depth = all_xy_and_depth[valid_object_mask]
+        per_corner_color = object_type_to_per_vertex_color[object_type].astype(np.float32)
+        all_corner_vertices = np.asarray(all_corner_vertices, dtype=np.float32)  # (N,8,3)
+        corners_cam_all = camera_model.transform_points_np(all_corner_vertices.reshape(-1, 3), world_to_camera).reshape(-1, 8, 3)
+        depths_all = corners_cam_all[:, :, 2]
 
-        for xy_and_depth in all_xy_and_depth:
-            geometry_objects.append(
-                BoundingBox2D(
-                    xy_and_depth=xy_and_depth,
-                    base_color_or_per_vertex_color=object_type_to_per_vertex_color[object_type],
-                    fill_face=fill_face,
-                    fill_face_style=fill_face_style,
-                    line_width=line_width,
-                    edge_color=edge_color,
+        all_in_front_mask = np.all(depths_all >= z_near, axis=1)
+        need_clip_mask = ~all_in_front_mask & (np.any(depths_all >= z_near, axis=1))
+
+        if np.any(all_in_front_mask):
+            xy_all = camera_model.ray2pixel_np(corners_cam_all[all_in_front_mask].reshape(-1, 3)).reshape(-1, 8, 2)
+            depths_flat = depths_all[all_in_front_mask]
+            xy_and_depth_all = np.concatenate([xy_all, depths_flat[..., None]], axis=-1)
+            for xy_and_depth in xy_and_depth_all:
+                geometry_objects.append(
+                    BoundingBox2D(
+                        xy_and_depth=xy_and_depth,
+                        base_color_or_per_vertex_color=per_corner_color,
+                        fill_face=fill_face,
+                        fill_face_style=fill_face_style,
+                        line_width=line_width,
+                        edge_color=edge_color,
+                    )
                 )
-            )
+
+        for idx in np.where(need_clip_mask)[0]:
+            corners_cam = corners_cam_all[idx]
+            depths = corners_cam[:, 2]
+
+            if np.all(depths < z_near):
+                continue
+
+            if np.all(depths >= z_near):
+                xy = camera_model.ray2pixel_np(corners_cam)
+                xy_and_depth = np.hstack([xy, depths.reshape(-1, 1)]).astype(np.float32)
+                geometry_objects.append(
+                    BoundingBox2D(
+                        xy_and_depth=xy_and_depth,
+                        base_color_or_per_vertex_color=per_corner_color,
+                        fill_face=fill_face,
+                        fill_face_style=fill_face_style,
+                        line_width=line_width,
+                        edge_color=edge_color,
+                    )
+                )
+                continue
+
+            # -------- faces (triangle clip in camera space, then project) --------
+            solid_tris_xyzd = []
+            solid_tris_col = []
+            black_tris_xyzd = []
+
+            if solid_face_indices is not None:
+                for (i0, i1, i2) in solid_face_indices:
+                    tri_pts = corners_cam[[i0, i1, i2]]
+                    tri_cols = per_corner_color[[i0, i1, i2]]
+                    clipped = clip_triangle_to_z_near(tri_pts, tri_cols, z_near=z_near)
+                    for cp, cc in clipped:
+                        xy = camera_model.ray2pixel_np(cp)  # (3,2)
+                        tri_xyzd = np.concatenate([xy, cp[:, 2:3]], axis=1)  # (3,3)
+                        solid_tris_xyzd.append(tri_xyzd)
+                        solid_tris_col.append(cc)
+
+            if black_face_indices is not None:
+                for (i0, i1, i2) in black_face_indices:
+                    tri_pts = corners_cam[[i0, i1, i2]]
+                    tri_cols = np.ones((3, 3), dtype=np.float32) * 0.25
+                    clipped = clip_triangle_to_z_near(tri_pts, tri_cols, z_near=z_near)
+                    for cp, _ in clipped:
+                        xy = camera_model.ray2pixel_np(cp)
+                        tri_xyzd = np.concatenate([xy, cp[:, 2:3]], axis=1)
+                        black_tris_xyzd.append(tri_xyzd)
+
+            if len(black_tris_xyzd) > 0:
+                geometry_objects.append(
+                    TriangleList2D(np.asarray(black_tris_xyzd, dtype=np.float32), base_color=np.array([0.25, 0.25, 0.25], dtype=np.float32))
+                )
+            if len(solid_tris_xyzd) > 0:
+                geometry_objects.append(
+                    TriangleList2DPerVertex(
+                        np.asarray(solid_tris_xyzd, dtype=np.float32),
+                        np.asarray(solid_tris_col, dtype=np.float32),
+                    )
+                )
+
+            # -------- edges (clip each segment to z_near, then project) --------
+            segs = []
+            seg_cols = []
+
+            def clip_seg(p1, p2, c1, c2):
+                z1, z2 = float(p1[2]), float(p2[2])
+                if z1 < z_near and z2 < z_near:
+                    return None
+                if z1 >= z_near and z2 >= z_near:
+                    return p1, p2, c1, c2
+                denom = (z2 - z1)
+                if abs(denom) < 1e-9:
+                    # keep the front point duplicated
+                    if z1 >= z_near:
+                        return p1, p1, c1, c1
+                    else:
+                        return p2, p2, c2, c2
+                t = float((z_near - z1) / denom)
+                t = float(np.clip(t, 0.0, 1.0))
+                pi = lerp(p1, p2, t)
+                ci = lerp(c1, c2, t)
+                if z1 < z_near:
+                    return pi, p2, ci, c2
+                else:
+                    return p1, pi, c1, ci
+
+            for i0, i1 in EDGE_INDICES:
+                c0, c1 = per_corner_color[i0], per_corner_color[i1]
+                q = clip_seg(corners_cam[i0], corners_cam[i1], c0, c1)
+                if q is None:
+                    continue
+                p0, p1, col0, col1 = q
+                xy01 = camera_model.ray2pixel_np(np.stack([p0, p1], axis=0))  # (2,2)
+                segs.append([[xy01[0, 0], xy01[0, 1], float(p0[2])], [xy01[1, 0], xy01[1, 1], float(p1[2])]])
+                if edge_color is None:
+                    seg_cols.append([col0, col1])
+
+            if len(segs) > 0:
+                segs = np.asarray(segs, dtype=np.float32)
+                if edge_color is not None:
+                    geometry_objects.append(LineSegment2D(segs, base_color=edge_color.astype(np.float32), line_width=line_width))
+                else:
+                    geometry_objects.append(LineSegment2DPerVertex(segs, np.asarray(seg_cols, dtype=np.float32), line_width=line_width))
 
     return geometry_objects
 

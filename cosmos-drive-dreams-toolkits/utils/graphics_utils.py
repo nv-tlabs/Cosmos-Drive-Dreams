@@ -481,6 +481,171 @@ class BoundingBox2D(Geometry2D):
         vao = ctx.vertex_array(polyline_program, [(vbo, '3f', 'in_pos'), (vbo_base_color, '3f', 'in_color')], mode=moderngl.LINES)
         vao.render()
 
+class TriangleList2D(Geometry2D):
+    """
+    Render a list of triangles. Useful for rendering triangulated polygons.
+
+    Args:
+        triangles: np.ndarray, [M, 3, 3]
+            M triangles, each with 3 vertices of shape [x, y, depth]
+        base_color: np.ndarray, [3] or [M, 3]
+            base color(s) for the triangles, will be faded according to depth
+    """
+    def __init__(
+        self, 
+        triangles: np.ndarray, 
+        base_color: Union[Tuple[float, float, float], np.ndarray], 
+    ):
+        if isinstance(base_color, tuple):
+            base_color = np.array(base_color)
+
+        if (base_color > 1.0).any():
+            raise ValueError("color must be in the range [0, 1]")
+        
+        self.triangles = triangles
+        self.base_color = base_color
+
+    def render(self, ctx, program, **kwargs):
+        """
+        Render the triangles.
+
+        Args:
+            ctx: moderngl.Context
+                the opengl context to render the triangles
+            program: moderngl.Program
+                the shader program to render the triangles
+            **kwargs: dict
+                not used.
+        """
+        # Flatten triangles to vertices: [M, 3, 3] -> [M*3, 3]
+        vertices = self.triangles.reshape(-1, 3).astype('f4')
+        
+        # Prepare colors for each vertex
+        if self.base_color.ndim == 1:  # Single color for all triangles
+            vertex_colors = np.tile(self.base_color, (len(vertices), 1)).astype('f4')
+        else:  # Per-triangle colors: [M, 3] -> [M*3, 3]
+            vertex_colors = np.repeat(self.base_color, 3, axis=0).astype('f4')
+        
+        vbo = ctx.buffer(vertices.tobytes())
+        vbo_base_color = ctx.buffer(vertex_colors.tobytes())
+        
+        vao = ctx.vertex_array(program, 
+                            [(vbo, '3f', 'in_pos'), (vbo_base_color, '3f', 'in_color')],
+                            mode=moderngl.TRIANGLES)
+        vao.render()
+
+class LineSegment2DPerVertex(Geometry2D):
+    """
+    N line segments, each with per-vertex color.
+    Args:
+        xy_and_depth: (N, 2, 3)
+        per_vertex_color: (N, 2, 3) in [0,1]
+    """
+    def __init__(self, xy_and_depth: np.ndarray, per_vertex_color: np.ndarray, line_width: float):
+        self.xy_and_depth = np.asarray(xy_and_depth)
+        self.per_vertex_color = np.asarray(per_vertex_color)
+        self.line_width = line_width
+
+        if self.xy_and_depth.ndim != 3 or self.xy_and_depth.shape[1:] != (2, 3):
+            raise ValueError(f"xy_and_depth must be (N,2,3), got {self.xy_and_depth.shape}")
+        if self.per_vertex_color.shape != (self.xy_and_depth.shape[0], 2, 3):
+            raise ValueError(f"per_vertex_color must be (N,2,3), got {self.per_vertex_color.shape}")
+        if (self.per_vertex_color > 1.0).any():
+            raise ValueError("color must be in the range [0, 1]")
+
+    def render(self, ctx, program, **kwargs):
+        program['u_line_width'].value = 2 * self.line_width / kwargs['image_width']
+        vertex_position = self.xy_and_depth.reshape(-1, 3).astype('f4')
+        vertex_color = self.per_vertex_color.reshape(-1, 3).astype('f4')
+
+        vbo = ctx.buffer(vertex_position.tobytes())
+        vbo_color = ctx.buffer(vertex_color.tobytes())
+        vao = ctx.vertex_array(program, [(vbo, '3f', 'in_pos'), (vbo_color, '3f', 'in_color')], mode=moderngl.LINES)
+        vao.render()
+
+
+class TriangleList2DPerVertex(Geometry2D):
+    """
+    triangles: (M, 3, 3) vertices [x,y,depth]
+    colors: (M, 3, 3) per-vertex RGB in [0,1]
+    """
+    def __init__(self, triangles: np.ndarray, colors: np.ndarray):
+        self.triangles = np.asarray(triangles)
+        self.colors = np.asarray(colors)
+
+        if self.triangles.ndim != 3 or self.triangles.shape[1:] != (3, 3):
+            raise ValueError(f"triangles must be (M,3,3), got {self.triangles.shape}")
+        if self.colors.shape != self.triangles.shape:
+            raise ValueError(f"colors must match triangles shape, got {self.colors.shape} vs {self.triangles.shape}")
+        if (self.colors > 1.0).any():
+            raise ValueError("color must be in the range [0, 1]")
+
+    def render(self, ctx, program, **kwargs):
+        vertices = self.triangles.reshape(-1, 3).astype('f4')
+        vcolors = self.colors.reshape(-1, 3).astype('f4')
+
+        vbo = ctx.buffer(vertices.tobytes())
+        vbo_color = ctx.buffer(vcolors.tobytes())
+        vao = ctx.vertex_array(program, [(vbo, '3f', 'in_pos'), (vbo_color, '3f', 'in_color')], mode=moderngl.TRIANGLES)
+        vao.render()
+
+
+class Polygon2D(Geometry2D):
+    """
+    After projecting 3D vertices to 2D, the vertices are stored in this class.
+
+    Args:
+        xy_and_depth: np.ndarray, [N, 3]
+            pixel coordinate and depth of N vertices of the polygon after projection
+        base_color: np.ndarray, [3]
+            base color of the polygon, it will faded according to the depth
+    """
+    def __init__(
+        self, 
+        xy_and_depth: Union[List[Tuple[float, float, float]], np.ndarray], 
+        base_color: Union[Tuple[float, float, float], np.ndarray], 
+    ):
+        if isinstance(xy_and_depth, list):
+            xy_and_depth = np.array(xy_and_depth)
+
+        # if first vertex is not the same as the last vertex, add the first vertex to the end
+        if not np.allclose(xy_and_depth[0], xy_and_depth[-1]):
+            xy_and_depth = np.concatenate([xy_and_depth, [xy_and_depth[0]]], axis=0)
+
+        if isinstance(base_color, tuple):
+            base_color = np.array(base_color)
+
+        if any(base_color > 1.0):
+            raise ValueError("color must be in the range [0, 1]")
+        
+        self.xy_and_depth = xy_and_depth
+        self.base_color = base_color
+
+    def render(self, ctx, program, **kwargs):
+        """
+        Render the polygon.
+
+        Args:
+            ctx: moderngl.Context
+                the opengl context to render the polygon
+            program: moderngl.Program
+                the shader program to render the polygon
+            **kwargs: dict
+                not used.
+        """
+        # use all vertices as a triangle fan (ensure the vertex order is correct and closed)
+        triangles = self.xy_and_depth[:-1].astype('f4') # last vertex is the same as the first vertex
+        vertex_base_color = np.tile(self.base_color, (len(triangles), 1)).astype('f4')
+        
+        vbo = ctx.buffer(triangles.tobytes())
+        vbo_base_color = ctx.buffer(vertex_base_color.tobytes())
+        
+        # Use the TRIANGLE_FAN mode (more suitable for polygon filling)
+        vao = ctx.vertex_array(program, 
+                            [(vbo, '3f', 'in_pos'), (vbo_base_color, '3f', 'in_color')],
+                            mode=moderngl.TRIANGLE_FAN) 
+        vao.render()
+
 
 def create_polyline_program(ctx, depth_gradient):
     """
