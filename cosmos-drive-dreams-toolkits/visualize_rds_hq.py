@@ -231,7 +231,7 @@ def draw_bev_projection(gui_image_handler, client_camera_pose, label_to_line_seg
         elif label_name == 'ego_car':
             color_uint8 = (255, 0, 0)
         else:
-            color_uint8 = MINIMAP_TO_RGB[label_name]
+            color_uint8 = MINIMAP_TO_RGB["hdmap"][label_name]
         
         ego_to_world = ego_pose_flu_grounded
         world_to_ego = np.linalg.inv(ego_to_world)
@@ -483,7 +483,7 @@ def main(input_root, novel_pose_folder, dataset, clip_id):
             # add minimap_data_wo_meta_info back to static_visualization_config
             label_to_line_segments[label_name] = np.asarray(line_segments)
             if len(line_segments) > 0:
-                add_polyline(server, line_segments, label_name, MINIMAP_TO_RGB[label_name])
+                add_polyline(server, line_segments, label_name, MINIMAP_TO_RGB["hdmap"][label_name])
         else:
             print(f"Label {label_name} is not visualized here.")
 
